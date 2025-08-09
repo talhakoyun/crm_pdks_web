@@ -1,0 +1,137 @@
+/* DataTables 2.0.8 Sort Icons Fix - Comprehensive Solution */
+
+/* Base sort icons for all states - using both old and new selectors */
+table.dataTable thead>tr>th.dt-orderable-asc span.dt-column-order:before,
+table.dataTable thead>tr>th.dt-ordering-asc span.dt-column-order:before,
+table.dataTable thead>tr>td.dt-orderable-asc span.dt-column-order:before,
+table.dataTable thead>tr>td.dt-ordering-asc span.dt-column-order:before,
+table.dataTable thead>tr>th.sorting_asc:after,
+table.dataTable thead>tr>td.sorting_asc:after,
+table.dataTable thead>tr>th[aria-sort="ascending"]:after,
+table.dataTable thead>tr>td[aria-sort="ascending"]:after {
+    content: "▲" !important;
+    font-family: "Arial Unicode MS", Arial, sans-serif !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    position: absolute !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #007bff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
+    z-index: 1 !important;
+    line-height: 1 !important;
+}
+
+table.dataTable thead>tr>th.dt-orderable-desc span.dt-column-order:after,
+table.dataTable thead>tr>th.dt-ordering-desc span.dt-column-order:after,
+table.dataTable thead>tr>td.dt-orderable-desc span.dt-column-order:after,
+table.dataTable thead>tr>td.dt-ordering-desc span.dt-column-order:after,
+table.dataTable thead>tr>th.sorting_desc:after,
+table.dataTable thead>tr>td.sorting_desc:after,
+table.dataTable thead>tr>th[aria-sort="descending"]:after,
+table.dataTable thead>tr>td[aria-sort="descending"]:after {
+    content: "▼" !important;
+    font-family: "Arial Unicode MS", Arial, sans-serif !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    position: absolute !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #007bff !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: inline-block !important;
+    z-index: 1 !important;
+    line-height: 1 !important;
+}
+
+/* Sortable but not sorted columns */
+table.dataTable thead>tr>th.sorting:after,
+table.dataTable thead>tr>td.sorting:after,
+table.dataTable thead>tr>th.dt-orderable-asc:not(.dt-ordering-asc):not(.sorting_asc):after,
+table.dataTable thead>tr>th.dt-orderable-desc:not(.dt-ordering-desc):not(.sorting_desc):after,
+table.dataTable thead>tr>td.dt-orderable-asc:not(.dt-ordering-asc):not(.sorting_asc):after,
+table.dataTable thead>tr>td.dt-orderable-desc:not(.dt-ordering-desc):not(.sorting_desc):after {
+    content: "⇅" !important;
+    font-family: "Arial Unicode MS", Arial, sans-serif !important;
+    font-size: 14px !important;
+    font-weight: normal !important;
+    position: absolute !important;
+    right: 10px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: #6c757d !important;
+    opacity: 0.7 !important;
+    visibility: visible !important;
+    display: inline-block !important;
+    z-index: 1 !important;
+    line-height: 1 !important;
+}
+
+/* Hover effect for sortable columns */
+table.dataTable thead>tr>th.sorting:hover:after,
+table.dataTable thead>tr>td.sorting:hover:after,
+table.dataTable thead>tr>th.dt-orderable-asc:not(.dt-ordering-asc):hover:after,
+table.dataTable thead>tr>th.dt-orderable-desc:not(.dt-ordering-desc):hover:after,
+table.dataTable thead>tr>td.dt-orderable-asc:not(.dt-ordering-asc):hover:after,
+table.dataTable thead>tr>td.dt-orderable-desc:not(.dt-ordering-desc):hover:after {
+    opacity: 1 !important;
+    color: #495057 !important;
+}
+
+/* Header cell padding adjustment for icon space */
+table.dataTable thead th,
+table.dataTable thead td {
+    padding-right: 40px !important;
+    position: relative !important;
+}
+
+/* Hide default DataTables icons */
+table.dataTable thead>tr>th.dt-orderable-asc span.dt-column-order,
+table.dataTable thead>tr>th.dt-orderable-desc span.dt-column-order,
+table.dataTable thead>tr>th.dt-ordering-asc span.dt-column-order,
+table.dataTable thead>tr>th.dt-ordering-desc span.dt-column-order,
+table.dataTable thead>tr>td.dt-orderable-asc span.dt-column-order,
+table.dataTable thead>tr>td.dt-orderable-desc span.dt-column-order,
+table.dataTable thead>tr>td.dt-ordering-asc span.dt-column-order,
+table.dataTable thead>tr>td.dt-ordering-desc span.dt-column-order {
+    display: none !important;
+}
+
+/* Override any conflicting styles from the original DataTables CSS */
+table.dataTable thead>tr>th:after,
+table.dataTable thead>tr>td:after {
+    font-family: "Arial Unicode MS", Arial, sans-serif !important;
+    line-height: 1 !important;
+}
+
+/* Ensure icons are visible in all themes */
+.dark table.dataTable thead>tr>th.sorting_asc:after,
+.dark table.dataTable thead>tr>th.sorting_desc:after,
+.dark table.dataTable thead>tr>td.sorting_asc:after,
+.dark table.dataTable thead>tr>td.sorting_desc:after {
+    color: #007bff !important;
+}
+
+.dark table.dataTable thead>tr>th.sorting:after,
+.dark table.dataTable thead>tr>td.sorting:after {
+    color: #adb5bd !important;
+}
+
+/* Fix for responsive tables */
+@media screen and (max-width: 767px) {
+    table.dataTable thead th,
+    table.dataTable thead td {
+        padding-right: 30px !important;
+    }
+
+    table.dataTable thead>tr>th:after,
+    table.dataTable thead>tr>td:after {
+        right: 8px !important;
+        font-size: 14px !important;
+    }
+}

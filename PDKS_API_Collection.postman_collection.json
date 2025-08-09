@@ -1,0 +1,426 @@
+{
+  "info": {
+    "name": "PDKS API Koleksiyonu",
+    "description": "PDKS (Personel Devam Kontrol Sistemi) API Koleksiyonu",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "description": "Kimlik doğrulama işlemleri için API endpoint'leri",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"kullanici@ornek.com\",\n    \"password\": \"sifre123\",\n    \"device_id\": \"device_123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Kullanıcı girişi yapar ve JWT token döndürür.\n\nGerekli Parametreler:\n- email: Kullanıcı e-posta adresi\n- password: Kullanıcı şifresi\n- device_id: Cihaz kimliği\n\nDönüş Değeri:\n- access_token: JWT token\n- token_type: Token tipi (bearer)\n- expires_in: Token geçerlilik süresi (saniye)"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "JWT token'ı yeniler.\n\nDönüş Değeri:\n- access_token: Yeni JWT token\n- token_type: Token tipi (bearer)\n- expires_in: Token geçerlilik süresi (saniye)"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Kullanıcı çıkışı yapar ve token'ı geçersiz kılar.\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı"
+          },
+          "response": []
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Giriş yapmış kullanıcının bilgilerini döndürür.\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı\n- data: Kullanıcı bilgileri"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Shift Follow",
+      "description": "Vardiya takibi işlemleri için API endpoint'leri",
+      "item": [
+        {
+          "name": "Check",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": \"check_in\",\n    \"branch_id\": 1,\n    \"zone_id\": 1,\n    \"shift_id\": 1,\n    \"positions\": {\n        \"latitude\": 41.0082,\n        \"longitude\": 28.9784\n    },\n    \"is_offline\": false,\n    \"device_id\": \"device_123456\",\n    \"device_model\": \"iPhone 12\",\n    \"note\": \"Giriş yapıldı\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shift-follow/check",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shift-follow", "check"]
+            },
+            "description": "Vardiya giriş/çıkış kontrolü yapar.\n\nGerekli Parametreler:\n- type: İşlem tipi (check_in, check_out, zone_entry, zone_exit, break_start, break_end)\n- branch_id: Şube ID\n- zone_id: Bölge ID\n- shift_id: Vardiya ID\n\nOpsiyonel Parametreler:\n- positions: Konum bilgisi (latitude, longitude)\n- is_offline: Çevrimdışı işlem mi?\n- device_id: Cihaz kimliği\n- device_model: Cihaz modeli\n- note: Not\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı\n- data: İşlem sonucu"
+          },
+          "response": []
+        },
+        {
+          "name": "Store",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"branch_id\": 1,\n    \"zone_id\": 1,\n    \"user_id\": 1,\n    \"shift_id\": 1,\n    \"transaction_date\": \"2023-05-20 08:00:00\",\n    \"shift_follow_type_id\": 1,\n    \"positions\": {\n        \"latitude\": 41.0082,\n        \"longitude\": 28.9784\n    },\n    \"is_offline\": false,\n    \"device_id\": \"device_123456\",\n    \"device_model\": \"iPhone 12\",\n    \"note\": \"Manuel kayıt\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shift-follow/store",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shift-follow", "store"]
+            },
+            "description": "Yeni bir vardiya takip kaydı oluşturur.\n\nGerekli Parametreler:\n- branch_id: Şube ID\n- zone_id: Bölge ID\n- user_id: Kullanıcı ID\n- shift_id: Vardiya ID\n- transaction_date: İşlem tarihi (Y-m-d H:i:s formatında)\n- shift_follow_type_id: Vardiya takip tipi ID\n\nOpsiyonel Parametreler:\n- positions: Konum bilgisi (latitude, longitude)\n- is_offline: Çevrimdışı işlem mi?\n- device_id: Cihaz kimliği\n- device_model: Cihaz modeli\n- note: Not\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı\n- data: Oluşturulan kayıt"
+          },
+          "response": []
+        },
+        {
+          "name": "Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/shift-follow/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shift-follow", "status"]
+            },
+            "description": "Kullanıcının mevcut vardiya durumunu döndürür.\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı\n- data: Vardiya durumu"
+          },
+          "response": []
+        },
+        {
+          "name": "List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/shift-follow/list",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shift-follow", "list"]
+            },
+            "description": "Kullanıcının vardiya listesini döndürür.\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı\n- data: Vardiya listesi"
+          },
+          "response": []
+        },
+        {
+          "name": "Clear Pings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/shift-follow/clear-pings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shift-follow", "clear-pings"]
+            },
+            "description": "Kullanıcının ping kayıtlarını temizler.\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı"
+          },
+          "response": []
+        },
+        {
+          "name": "Ping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"type\": 1,\n    \"positions\": {\n        \"latitude\": 41.0082,\n        \"longitude\": 28.9784\n    },\n    \"offline\": false,\n    \"device_id\": \"device_123456\",\n    \"device_model\": \"iPhone 12\",\n    \"note\": \"Ping kaydı\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shift-follow/ping",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shift-follow", "ping"]
+            },
+            "description": "Kullanıcının konum bilgisini kaydeder (ping).\n\nGerekli Parametreler:\n- type: İşlem tipi (1: checkin, 2: checkout, 3: zone)\n\nOpsiyonel Parametreler:\n- positions: Konum bilgisi (latitude, longitude)\n- offline: Çevrimdışı işlem mi?\n- device_id: Cihaz kimliği\n- device_model: Cihaz modeli\n- note: Not\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı"
+          },
+          "response": []
+        },
+        {
+          "name": "Zone",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"positions\": {\n        \"latitude\": 41.0082,\n        \"longitude\": 28.9784\n    },\n    \"offline\": false,\n    \"device_id\": \"device_123456\",\n    \"device_model\": \"iPhone 12\",\n    \"note\": \"Bölge kaydı\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shift-follow/zone",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shift-follow", "zone"]
+            },
+            "description": "Kullanıcının bölge bilgisini kaydeder.\n\nOpsiyonel Parametreler:\n- positions: Konum bilgisi (latitude, longitude)\n- offline: Çevrimdışı işlem mi?\n- device_id: Cihaz kimliği\n- device_model: Cihaz modeli\n- note: Not\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Shift Follow Report",
+      "description": "Vardiya takip raporları için API endpoint'leri",
+      "item": [
+        {
+          "name": "Daily",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"date\": \"2023-05-20\",\n    \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shift-follow-report/daily",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shift-follow-report", "daily"]
+            },
+            "description": "Günlük vardiya takip raporunu döndürür.\n\nOpsiyonel Parametreler:\n- date: Rapor tarihi (Y-m-d formatında, varsayılan: bugün)\n- user_id: Kullanıcı ID (varsayılan: giriş yapan kullanıcı)\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı\n- data: Günlük vardiya raporu"
+          },
+          "response": []
+        },
+        {
+          "name": "Weekly Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"start_date\": \"2023-05-15\",\n    \"end_date\": \"2023-05-21\",\n    \"user_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/shift-follow-report/weekly-report",
+              "host": ["{{base_url}}"],
+              "path": ["api", "shift-follow-report", "weekly-report"]
+            },
+            "description": "Haftalık vardiya takip raporunu döndürür.\n\nOpsiyonel Parametreler:\n- start_date: Başlangıç tarihi (Y-m-d formatında, varsayılan: haftanın başlangıcı)\n- end_date: Bitiş tarihi (Y-m-d formatında, varsayılan: haftanın sonu)\n- user_id: Kullanıcı ID (varsayılan: giriş yapan kullanıcı)\n\nDönüş Değeri:\n- status: İşlem durumu\n- message: İşlem mesajı\n- data: Haftalık vardiya raporu (günlük özetler ve haftalık toplamlar)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "your_jwt_token_here",
+      "type": "string"
+    }
+  ]
+}
