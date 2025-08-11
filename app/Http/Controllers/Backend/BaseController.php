@@ -56,7 +56,6 @@ class BaseController extends Controller
             $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
             $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
             $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
             $companyId = $request->attributes->get('company_id');
             $branchId = $request->attributes->get('branch_id');
             $departmentId = $request->attributes->get('department_id');
@@ -71,20 +70,11 @@ class BaseController extends Controller
                 // Şirket bazlı filtreleme
                 if (in_array('company_id', $columns) && !is_null($companyId)) {
                     $select->where("$table.company_id", $companyId);
-                }
-
-                // Şube bazlı filtreleme - Şirket sahibi ve yetkilisi tüm şubelere erişebilir
-                if (in_array('branch_id', $columns) && !is_null($branchId) && !$isCompanyOwner && !$isCompanyAdmin) {
+                } else if (in_array('branch_id', $columns) && !is_null($branchId) && !$isCompanyOwner && !$isCompanyAdmin) {
                     $select->where("$table.branch_id", $branchId);
-                }
-
-                // Departman bazlı filtreleme - Şube yetkilisi tüm departmanlara erişebilir
-                if (in_array('department_id', $columns) && !is_null($departmentId) && !$isBranchAdmin) {
+                } else if (in_array('department_id', $columns) && !is_null($departmentId) && !$isBranchAdmin) {
                     $select->where("$table.department_id", $departmentId);
-                }
-
-                // Departman yetkilisiyse ve tabloda departman_id yoksa, created_by üzerinden filtreleme
-                if ($isDepartmentAdmin && !in_array('department_id', $columns) && in_array('created_by', $columns)) {
+                }else if ($isDepartmentAdmin && !in_array('department_id', $columns) && in_array('created_by', $columns)) {
                     // İki durum için OR koşulu:
                     // 1. Kaydın created_by'ı kullanıcının kendisi veya
                     // 2. Kaydın created_by'ı kullanıcının departmanındaki biri
@@ -94,10 +84,7 @@ class BaseController extends Controller
                         $query->whereIn('created_by', $departmentUserIds)
                             ->orWhere('created_by', $loggedInUserId);
                     });
-                }
-
-                // Kullanıcı bazlı filtreleme - Sadece normal personel
-                if (in_array('user_id', $columns) && !is_null($userId) && !$isDepartmentAdmin) {
+                }else  if (in_array('user_id', $columns) && !is_null($userId) && !$isDepartmentAdmin) {
                     $select->where("$table.user_id", $userId);
                 }
             }

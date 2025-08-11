@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->integer('company_id')->nullable();
             $table->integer('branch_id')->nullable();
-            $table->integer('user_id');
-            $table->date('start_date');
-            $table->date('end_date');
+            $table->integer('user_id')->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
             $table->integer('type')->nullable();
             $table->text('note')->nullable();
             $table->string('status', 20)->default('pending');
