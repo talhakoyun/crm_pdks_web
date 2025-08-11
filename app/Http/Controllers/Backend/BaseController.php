@@ -84,7 +84,7 @@ class BaseController extends Controller
                         $query->whereIn('created_by', $departmentUserIds)
                             ->orWhere('created_by', $loggedInUserId);
                     });
-                }else  if (in_array('user_id', $columns) && !is_null($userId) && !$isDepartmentAdmin) {
+                }else if (in_array('user_id', $columns) && !is_null($userId) && !$isDepartmentAdmin) {
                     $select->where("$table.user_id", $userId);
                 }
             }
