@@ -60,7 +60,7 @@ class EventController extends BaseController
             }
 
             return ApiResponse::success(
-                null,
+                [],
                 $result['message'],
                 SymfonyResponse::HTTP_OK
             );
@@ -150,14 +150,21 @@ class EventController extends BaseController
             }])
             ->get();
 
-            return ApiResponse::success([
-                'upcoming_approved' => EventResource::collection($upcomingApproved),
-                'past_approved' => EventResource::collection($pastApproved),
-                'upcoming_rejected' => EventResource::collection($upcomingRejected),
-                'past_rejected' => EventResource::collection($pastRejected),
-                'upcoming_pending' => EventResource::collection($upcomingPending),
-                'past_pending' => EventResource::collection($pastPending)
-            ], 'Katılım sağladığınız etkinlikler başarıyla listelendi', SymfonyResponse::HTTP_OK);
+            $data = [
+                'upcoming_approved' => EventResource::collection($upcomingApproved)->resolve(request()),
+                'past_approved' => EventResource::collection($pastApproved)->resolve(request()),
+                'upcoming_rejected' => EventResource::collection($upcomingRejected)->resolve(request()),
+                'past_rejected' => EventResource::collection($pastRejected)->resolve(request()),
+                'upcoming_pending' => EventResource::collection($upcomingPending)->resolve(request()),
+                'past_pending' => EventResource::collection($pastPending)->resolve(request()),
+            ];
+            // Eğer resource collection resolve sonucu {data: [...]} yapısındaysa içteki dizi alınır
+            foreach ($data as $key => $value) {
+                if (is_array($value) && array_key_exists('data', $value)) {
+                    $data[$key] = $value['data'];
+                }
+            }
+            return ApiResponse::success($data, 'Katılım sağladığınız etkinlikler başarıyla listelendi', SymfonyResponse::HTTP_OK);
 
         } catch (\Exception $e) {
             return ApiResponse::error(

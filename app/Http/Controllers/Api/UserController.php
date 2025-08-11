@@ -22,8 +22,9 @@ class UserController extends BaseController
     public function profile()
     {
         $user = Auth::user();
+        $userResource = new ProfileResource($user);
         return ApiResponse::success(
-            new ProfileResource($user),
+            [$userResource],
             "Kullanıcı bilgileriniz başarıyla listelendi."
         );
     }
@@ -32,8 +33,9 @@ class UserController extends BaseController
     {
         $user = User::find(Auth::user()->id);
         $user->update($request->all());
+        $userResource = new ProfileResource($user);
         return ApiResponse::success(
-            new ProfileResource($user),
+            [$userResource],
             "Kullanıcı bilgileriniz başarıyla güncellendi."
         );
     }

@@ -111,17 +111,20 @@ class ShiftFollowController extends BaseController
         // Eğer $dates null ise tüm kayıtlar getirilecek, değilse tarih aralığı filtrelenecek
         $shiftList = $this->shiftFollowService->getUserShiftList($user->id, $dates);
 
-        // Resource ile dönüşüm yap
+        // Resource ile dönüşüm yap ve sadece iç veri dizisini dön
         $formattedList = collect($shiftList)->map(function ($item) {
             return new ShiftListResource($item);
         });
+        $formattedArray = $formattedList->map(function ($res) {
+            return $res->resolve(request());
+        })->values()->all();
 
         // Filtre bilgisine göre mesaj oluştur
         $message = $dates
             ? "Belirtilen tarih aralığındaki vardiya listesi başarıyla alındı"
             : "Tüm vardiya listesi başarıyla alındı";
 
-        return ApiResponse::success($formattedList, $message, SymfonyResponse::HTTP_OK);
+        return ApiResponse::success($formattedArray, $message, SymfonyResponse::HTTP_OK);
     }
 
     /**
@@ -135,9 +138,11 @@ class ShiftFollowController extends BaseController
     {
         try {
             $followTypes = ShiftFollowType::all();
-
+            $followTypesResource = new ShiftFollowTypeCollection($followTypes);
+            $resolved = $followTypesResource->resolve(request());
+            $dataOnly = $resolved['data'] ?? $resolved;
             return ApiResponse::success(
-                new ShiftFollowTypeCollection($followTypes),
+                $dataOnly,
                 "Vardiya takip tipleri başarıyla listelendi",
                 SymfonyResponse::HTTP_OK
             );
@@ -533,9 +538,9 @@ class ShiftFollowController extends BaseController
             } else {
                 $message = "Vardiya takip kaydınız başarıyla oluşturuldu";
             }
-
+            $shiftFollowResource = new ShiftFollowResource($shiftFollow);
             return ApiResponse::success(
-                new ShiftFollowResource($shiftFollow),
+                [$shiftFollowResource],
                 $message,
                 SymfonyResponse::HTTP_CREATED
             );
@@ -937,9 +942,9 @@ class ShiftFollowController extends BaseController
 
             // Yanıtı ShiftFollowResource üzerinden şekillendir
             $message = $type == 1 ? 'QR kod ile giriş kaydınız başarıyla oluşturuldu' : 'QR kod ile çıkış kaydınız başarıyla oluşturuldu';
-
+            $shiftFollowResource = new ShiftFollowResource($shiftFollow);
             return ApiResponse::success(
-                new ShiftFollowResource($shiftFollow),
+                [$shiftFollowResource],
                 $message,
                 SymfonyResponse::HTTP_CREATED
             );

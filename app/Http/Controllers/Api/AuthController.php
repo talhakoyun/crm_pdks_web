@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\LoginRequest;
 use App\Http\Requests\Api\RegisterRequest;
-use App\Http\Resources\User\UserResource;
+use App\Http\Resources\Profile\ProfileResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\User;
 use App\Services\AuthService;
@@ -51,7 +51,7 @@ class AuthController extends Controller
             'expires_in' => config('jwt.ttl') * 60
         ];
         $user = User::where('email', $request->email)->first();
-        $userResource = new UserResource($user, $tokenData);
+        $userResource = new ProfileResource($user, $tokenData);
 
         return ApiResponse::success(
             [
@@ -69,7 +69,7 @@ class AuthController extends Controller
     public function logout(): JsonResponse
     {
         $this->authService->logout();
-        return ApiResponse::success(null, 'Çıkış başarılı');
+        return ApiResponse::success([], 'Çıkış başarılı');
     }
 
     /**
@@ -99,12 +99,12 @@ class AuthController extends Controller
     public function me(): JsonResponse
     {
         $user = $this->authService->getAuthenticatedUser();
-        return ApiResponse::success($user, 'Kullanıcı bilgileri');
+        return ApiResponse::success([$user], 'Kullanıcı bilgileri');
     }
 
     public function register(RegisterRequest $request): JsonResponse
     {
         $user = $this->authService->register($request->all());
-        return ApiResponse::success($user, 'Kullanıcı kaydı başarılı');
+        return ApiResponse::success([$user], 'Kullanıcı kaydı başarılı');
     }
 }

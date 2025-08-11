@@ -58,6 +58,7 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::prefix('holidays')->group(function () {
         Route::get('list', [HolidayController::class, 'list']);
         Route::post('store', [HolidayController::class, 'store']);
+        Route::get('types', [HolidayController::class, 'types']);
     });
 
     // Kullanıcı bilgileri

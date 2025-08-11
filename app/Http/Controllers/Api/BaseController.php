@@ -68,7 +68,7 @@ abstract class BaseController extends Controller
             $items = $query->paginate($perPage);
 
             return ApiResponse::success(
-                $items,
+                [$items],
                 sprintf('%s listesi başarıyla alındı', $this->modelName)
             );
         } catch (\Exception $e) {
@@ -184,7 +184,7 @@ abstract class BaseController extends Controller
             }
 
             return ApiResponse::success(
-                $item,
+                [$item],
                 sprintf('%s başarıyla alındı', $this->modelName)
             );
         } catch (\Exception $e) {
@@ -221,7 +221,7 @@ abstract class BaseController extends Controller
             }
 
             return ApiResponse::success(
-                $item,
+                [$item],
                 sprintf('%s başarıyla oluşturuldu', $this->modelName),
                 SymfonyResponse::HTTP_CREATED
             );
@@ -309,7 +309,7 @@ abstract class BaseController extends Controller
             }
 
             return ApiResponse::success(
-                $item,
+                [$item],
                 sprintf('%s başarıyla güncellendi', $this->modelName)
             );
         } catch (\Exception $e) {
@@ -358,7 +358,7 @@ abstract class BaseController extends Controller
             $item->delete();
 
             return ApiResponse::success(
-                null,
+                [],
                 sprintf('%s başarıyla silindi', $this->modelName)
             );
         } catch (\Exception $e) {

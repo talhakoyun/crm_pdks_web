@@ -8,6 +8,13 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProfileResource extends JsonResource
 {
+    private ?array $tokenData = null;
+
+    public function __construct($resource, ?array $tokenData = null)
+    {
+        parent::__construct($resource);
+        $this->tokenData = $tokenData;
+    }
     /**
      * Transform the resource into an array.
      *
@@ -15,7 +22,7 @@ class ProfileResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        $data = [
             'id' => $this->id,
             'name' => $this->name,
             'surname' => $this->surname,
@@ -36,5 +43,11 @@ class ProfileResource extends JsonResource
             'birthday' => $this->birthday,
             'created_at' => $this->created_at,
         ];
+
+        if ($this->tokenData !== null) {
+            $data['token'] = $this->tokenData;
+        }
+
+        return $data;
     }
 }

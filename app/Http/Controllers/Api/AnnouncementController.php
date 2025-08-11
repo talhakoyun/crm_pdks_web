@@ -134,9 +134,11 @@ class AnnouncementController extends BaseController
 
             $perPage = $request->get('per_page', 10);
             $announcements = $query->paginate($perPage);
-
+            $announcementResource = new AnnouncementCollection($announcements);
+            $resolved = $announcementResource->resolve(request());
+            $dataOnly = $resolved['data'] ?? $resolved;
             return ApiResponse::success(
-                new AnnouncementCollection($announcements),
+                $dataOnly,
                 'Duyurular başarıyla listelendi',
                 SymfonyResponse::HTTP_OK
             );
@@ -232,9 +234,10 @@ class AnnouncementController extends BaseController
 
             // Duyuruyu okundu olarak işaretle
             $announcement->markAsRead($user->id);
-
+            $announcementResource = new AnnouncementResource($announcement);
+            $dataOnly = $announcementResource->resolve(request());
             return ApiResponse::success(
-                new AnnouncementResource($announcement),
+                $dataOnly,
                 'Duyuru detayı başarıyla getirildi',
                 SymfonyResponse::HTTP_OK
             );

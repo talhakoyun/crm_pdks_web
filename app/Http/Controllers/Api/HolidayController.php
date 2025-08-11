@@ -90,15 +90,18 @@ class HolidayController extends BaseController
                 $filters,
                 $this->relationships
             );
-
+            $holidayResource = new HolidayCollection($holidays);
             if ($holidays->count() > 0) {
+                // Koleksiyonu çöz ve sadece içteki 'data' dizisini döndür
+                $resolved = $holidayResource->resolve(request());
+                $dataOnly = $resolved['data'] ?? $resolved;
                 return ApiResponse::success(
-                    new HolidayCollection($holidays),
+                    $dataOnly,
                     "İzin talepleriniz başarıyla listelendi."
                 );
             } else {
                 return ApiResponse::success(
-                    ['data' => []],
+                    [],
                     "İzin talebiniz bulunmamaktadır."
                 );
             }
@@ -119,8 +122,11 @@ class HolidayController extends BaseController
         try {
             $holidayTypes = HolidayType::all();
 
+            $typesResource = new HolidayTypeCollection($holidayTypes);
+            $resolved = $typesResource->resolve(request());
+            $dataOnly = $resolved['data'] ?? $resolved;
             return ApiResponse::success(
-                new HolidayTypeCollection($holidayTypes),
+                $dataOnly,
                 "İzin tipleri başarıyla listelendi",
                 SymfonyResponse::HTTP_OK
             );
@@ -151,7 +157,7 @@ class HolidayController extends BaseController
             // İzin talebi oluşturma
             $holiday = $this->holidayService->createHoliday($data);
 
-            return ApiResponse::success($holiday, "İzin talebi başarıyla oluşturuldu");
+            return ApiResponse::success([$holiday], "İzin talebi başarıyla oluşturuldu");
         } catch (\Exception $e) {
             return ApiResponse::serverError("İzin talebi oluşturulurken bir hata oluştu: " . $e->getMessage());
         }

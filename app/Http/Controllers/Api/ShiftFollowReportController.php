@@ -70,9 +70,9 @@ class ShiftFollowReportController extends BaseController
 
             // Servis üzerinden günlük raporu al
             $report = $this->reportService->getDailyReport($userId, $date);
-
+            $reportResource = new ShiftFollowDailyReportResource($report);
             return ApiResponse::success(
-                new ShiftFollowDailyReportResource($report),
+                [$reportResource],
                 'Günlük vardiya takip bilgileri başarıyla alındı'
             );
         } catch (\Exception $e) {
@@ -113,9 +113,9 @@ class ShiftFollowReportController extends BaseController
 
             // Servis üzerinden haftalık raporu al
             $report = $this->reportService->getWeeklyReport($userId, $startDate, $endDate);
-
+            $reportResource = new ShiftFollowWeeklyReportResource($report);
             return ApiResponse::success(
-                new ShiftFollowWeeklyReportResource($report),
+                [$reportResource],
                 'Haftalık vardiya raporu başarıyla oluşturuldu'
             );
         } catch (\Exception $e) {
