@@ -20,8 +20,7 @@ class HolidayTypeResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'type' => $this->type,
-            'description' => $this->description,
+            'icon_name' => $this->icon_name,
         ];
     }
 }
