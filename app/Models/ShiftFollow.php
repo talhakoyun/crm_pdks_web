@@ -83,14 +83,14 @@ class ShiftFollow extends BaseModel
     public function scopeCheckIn($query)
     {
         return $query->whereHas('followType', function($q) {
-            $q->where('type', 'check_in');
+            $q->where('type', 'in');
         });
     }
 
     public function scopeCheckOut($query)
     {
         return $query->whereHas('followType', function($q) {
-            $q->where('type', 'check_out');
+            $q->where('type', 'out');
         });
     }
 }

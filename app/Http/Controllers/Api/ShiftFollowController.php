@@ -55,9 +55,8 @@ class ShiftFollowController extends BaseController
     }
 
     public const TYPES = [
-        1 => 'check_in',
-        2 => 'check_out',
-        3 => 'zone'
+        1 => 'in',
+        2 => 'out'
     ];
 
     /**
@@ -410,8 +409,8 @@ class ShiftFollowController extends BaseController
             if (isset($data['shift_follow_type_id'])) {
                 $followType = ShiftFollowType::find($data['shift_follow_type_id']);
 
-                $checkInType = ShiftFollowType::where('type', 'check_in')->first();
-                $checkOutType = ShiftFollowType::where('type', 'check_out')->first();
+                $checkInType = ShiftFollowType::where('type', 'in')->first();
+                $checkOutType = ShiftFollowType::where('type', 'out')->first();
 
                 $hasCheckIn = ShiftFollow::where('user_id', $user->id)
                     ->where('shift_follow_type_id', $checkInType->id)
@@ -429,7 +428,7 @@ class ShiftFollowController extends BaseController
                     ->first();
 
                 // Giriş kaydı yapılıyorsa
-                if ($followType && $followType->type === 'check_in') {
+                if ($followType && $followType->type === 'in') {
                     if ($checkInType && $checkOutType) {
                         // Eğer giriş kaydı var ve çıkış kaydı yoksa hata döndür
                         if ($hasCheckIn && !$hasCheckOut) {
@@ -465,7 +464,7 @@ class ShiftFollowController extends BaseController
                             }
                         }
                     }
-                } elseif ($followType && $followType->type === 'check_out') {
+                } elseif ($followType && $followType->type === 'out') {
                     if ($checkInType && $checkOutType) {
                         // Eğer giriş kaydı yoksa çıkış yapılamaz
                         if (!$hasCheckIn) {
@@ -534,7 +533,7 @@ class ShiftFollowController extends BaseController
 
             if (isset($followType)) {
                 $type = $followType->type;
-                $message = $type === 'check_in' ? 'Giriş kaydınız başarıyla oluşturuldu' : 'Çıkış kaydınız başarıyla oluşturuldu';
+                $message = $type === 'in' ? 'Giriş kaydınız başarıyla oluşturuldu' : 'Çıkış kaydınız başarıyla oluşturuldu';
             } else {
                 $message = "Vardiya takip kaydınız başarıyla oluşturuldu";
             }
@@ -663,9 +662,9 @@ class ShiftFollowController extends BaseController
             // Giriş/çıkış tipini belirle
             $followType = null;
             if ($type == 1) {
-                $followType = ShiftFollowType::where('type', 'check_in')->first();
+                $followType = ShiftFollowType::where('type', 'in')->first();
             } else if ($type == 2) {
-                $followType = ShiftFollowType::where('type', 'check_out')->first();
+                $followType = ShiftFollowType::where('type', 'out')->first();
             }
 
             if (!$followType) {
@@ -823,8 +822,8 @@ class ShiftFollowController extends BaseController
             $outTolerance = Setting::where('key', 'out_tolerance')->first()->value ?? 0;
 
             // Giriş/çıkış sıralaması kontrolü
-            $checkInType = ShiftFollowType::where('type', 'check_in')->first();
-            $checkOutType = ShiftFollowType::where('type', 'check_out')->first();
+            $checkInType = ShiftFollowType::where('type', 'in')->first();
+            $checkOutType = ShiftFollowType::where('type', 'out')->first();
 
             $hasCheckIn = ShiftFollow::where('user_id', $user->id)
                 ->where('shift_follow_type_id', $checkInType->id)

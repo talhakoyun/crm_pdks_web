@@ -28,29 +28,14 @@ class ShiftListResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $type = $this['type'] ?? 'unknown';
-        $formattedDate = isset($this['date']) ? $this['date'] : null;
 
         $data = [
             'id' => $this['id'] ?? null,
-            'date' => $formattedDate,
-            'time' => $this['time'] ?? null,
-            'datetime' => $this['datetime'] ?? null,
-            'type' => $type,
+            'dateTime' => Carbon::parse($this['datetime'])->format('Y-m-d'),
         ];
 
         // 'shift' tipi için giriş/çıkış bilgileri
-        if ($type === 'shift') {
-            $data['action_type'] = $this['action_type'] ?? null; // check_in veya check_out
-            $data['branch'] = $this['branch'] ?? null;
-            $data['zone'] = $this['zone'] ?? null;
-        }
-
-        // 'zone' tipi için bölge bilgileri
-        if ($type === 'zone') {
-            $data['zone_name'] = $this['zone_name'] ?? 'Bilinmeyen';
-            $data['zone_id'] = $this['zone_id'] ?? null;
-        }
+        $data['action_type'] = $this['action_type'] ?? null; // check_in veya check_out
 
         return $data;
     }

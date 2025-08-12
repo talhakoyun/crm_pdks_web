@@ -56,7 +56,7 @@ class ShiftFollowRequest extends ApiRequest
         // Check-in/out özel işlemi için
         if ($this->routeIs('*.checkInOut')) {
             return [
-                'type' => 'required|in:check_in,check_out,zone_entry,zone_exit,break_start,break_end',
+                'type' => 'required|in:in,out,zone_entry,zone_exit,break_start,break_end',
                 'branch_id' => 'required|exists:branches,id',
                 'zone_id' => 'required|exists:zones,id',
                 'shift_id' => 'required|exists:shift_definitions,id',

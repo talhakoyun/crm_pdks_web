@@ -32,18 +32,6 @@ class ShiftFollowResource extends JsonResource
             'transaction_date' => $this->transaction_date,
             'type' => $this->followType?->type,
             'status' => $this->status,
-            'branch' => $this->whenLoaded('branch', function() {
-                return [
-                    'id' => $this->branch->id,
-                    'title' => $this->branch->title,
-                ];
-            }),
-            'zone' => $this->whenLoaded('zone', function() {
-                return [
-                    'id' => $this->zone->id,
-                    'title' => $this->zone->title,
-                ];
-            }),
             'shift' => $this->whenLoaded('shift', function() {
                 return [
                     'id' => $this->shift->id,

@@ -40,8 +40,8 @@ class DashboardController extends Controller
         // Bugün işe gelen personel sayısı
         $presentToday = ShiftFollow::where('company_id', $company_id)
             ->whereDate('transaction_date', $today)
-            ->whereHas('followType', function($query) {
-                $query->where('type', 'check_in');
+            ->whereHas('followType', function ($query) {
+                $query->where('type', 'in');
             })
             ->distinct('user_id')
             ->count('user_id');
@@ -58,7 +58,7 @@ class DashboardController extends Controller
         $holidayTypes = HolidayType::all();
         // Lokasyon bazlı personel durumları
         $branchStats = Branch::select('branches.id', 'branches.title', DB::raw('COUNT(DISTINCT shift_follows.user_id) as present_users'))
-            ->leftJoin('shift_follows', function($join) use ($today) {
+            ->leftJoin('shift_follows', function ($join) use ($today) {
                 $join->on('branches.id', '=', 'shift_follows.branch_id')
                     ->whereDate('shift_follows.transaction_date', $today);
             })
@@ -70,10 +70,10 @@ class DashboardController extends Controller
         $lateArrivals = ShiftFollow::with('user')
             ->where('company_id', $company_id)
             ->whereDate('transaction_date', $today)
-            ->whereHas('followType', function($query) {
-                $query->where('type', 'check_in');
+            ->whereHas('followType', function ($query) {
+                $query->where('type', 'in');
             })
-            ->whereHas('shift', function($query) {
+            ->whereHas('shift', function ($query) {
                 $query->whereRaw('TIME(transaction_date) > TIME(ADDTIME(start_time, "00:15:00"))');
             })
             ->get();
@@ -85,8 +85,8 @@ class DashboardController extends Controller
         $weeklyStats = ShiftFollow::select(DB::raw('DATE(transaction_date) as date'), DB::raw('COUNT(DISTINCT user_id) as user_count'))
             ->where('company_id', $company_id)
             ->whereBetween('transaction_date', [$weekStart, $weekEnd])
-            ->whereHas('followType', function($query) {
-                $query->where('type', 'check_in');
+            ->whereHas('followType', function ($query) {
+                $query->where('type', 'in');
             })
             ->groupBy(DB::raw('DATE(transaction_date)'))
             ->get();
@@ -126,7 +126,7 @@ class DashboardController extends Controller
         }
 
         // Personel eksik olan vardiyaları hesapla (5'ten az personeli olan vardiyalar)
-        $eksikVardiyaSayisi = $upcomingShifts->filter(function($shift) {
+        $eksikVardiyaSayisi = $upcomingShifts->filter(function ($shift) {
             return $shift->total_personnel < 5;
         })->count();
 
@@ -153,8 +153,8 @@ class DashboardController extends Controller
         // Bugün en az bir giriş veya çıkış kaydı olan kullanıcı ID'lerini al
         $activeUserIds = ShiftFollow::where('company_id', $company_id)
             ->whereDate('transaction_date', $date)
-            ->whereHas('followType', function($query) {
-                $query->whereIn('type', ['check_in', 'check_out']);
+            ->whereHas('followType', function ($query) {
+                $query->whereIn('type', ['in', 'out']);
             })
             ->pluck('user_id')
             ->unique()
@@ -174,16 +174,16 @@ class DashboardController extends Controller
             // Kullanıcının bugünkü en son giriş/çıkış işlemi
             $lastCheckIn = ShiftFollow::where('user_id', $user->id)
                 ->whereDate('transaction_date', $date)
-                ->whereHas('followType', function($query) {
-                    $query->where('type', 'check_in');
+                ->whereHas('followType', function ($query) {
+                    $query->where('type', 'in');
                 })
                 ->orderBy('transaction_date', 'desc')
                 ->first();
 
             $lastCheckOut = ShiftFollow::where('user_id', $user->id)
                 ->whereDate('transaction_date', $date)
-                ->whereHas('followType', function($query) {
-                    $query->where('type', 'check_out');
+                ->whereHas('followType', function ($query) {
+                    $query->where('type', 'out');
                 })
                 ->orderBy('transaction_date', 'desc')
                 ->first();
@@ -223,7 +223,9 @@ class DashboardController extends Controller
                 // Giriş saati, vardiya başlangıç saatine göre geç mi kontrol et
                 if ($lastCheckIn->shift) {
                     $shiftStartTime = Carbon::parse($lastCheckIn->shift->start_time)->setDate(
-                        $checkInTime->year, $checkInTime->month, $checkInTime->day
+                        $checkInTime->year,
+                        $checkInTime->month,
+                        $checkInTime->day
                     );
 
                     if ($checkInTime->gt($shiftStartTime->copy()->addMinutes(15))) {
@@ -248,13 +250,15 @@ class DashboardController extends Controller
     private function getLongestWorkingUsers($company_id, $date)
     {
         // En uzun süre çalışan personeller (bugün)
-        $checkInOut = ShiftFollow::select('user_id',
-                DB::raw('MIN(CASE WHEN shift_follow_types.type = "check_in" THEN shift_follows.transaction_date END) as check_in_time'),
-                DB::raw('MAX(CASE WHEN shift_follow_types.type = "check_out" THEN shift_follows.transaction_date END) as check_out_time'))
+        $checkInOut = ShiftFollow::select(
+            'user_id',
+            DB::raw('MIN(CASE WHEN shift_follow_types.type = "in" THEN shift_follows.transaction_date END) as check_in_time'),
+            DB::raw('MAX(CASE WHEN shift_follow_types.type = "out" THEN shift_follows.transaction_date END) as check_out_time')
+        )
             ->join('shift_follow_types', 'shift_follows.shift_follow_type_id', '=', 'shift_follow_types.id')
             ->where('shift_follows.company_id', $company_id)
             ->whereDate('shift_follows.transaction_date', $date)
-            ->whereIn('shift_follow_types.type', ['check_in', 'check_out'])
+            ->whereIn('shift_follow_types.type', ['in', 'out'])
             ->groupBy('user_id')
             ->havingRaw('check_in_time IS NOT NULL')
             ->get();

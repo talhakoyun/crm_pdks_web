@@ -15,13 +15,13 @@ class ShiftFollowTypeSeeder extends Seeder
         $items = [
             [
                 'title' => 'Giriş',
-                'type' => 'check_in',
+                'type' => 'in ',
                 'created_at' => now(),
                 'updated_at' => now()
             ],
             [
                 'title' => 'Çıkış',
-                'type' => 'check_out',
+                'type' => 'out',
                 'created_at' => now(),
                 'updated_at' => now()
             ],

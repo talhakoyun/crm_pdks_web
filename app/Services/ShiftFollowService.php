@@ -62,7 +62,7 @@ class ShiftFollowService
             // Her kayıt için benzersiz bir anahtar oluştur
             $key = $date . '_' . $recordId;
 
-            if ($followType && in_array($followType->type, ['check_in', 'check_out'])) {
+            if ($followType && in_array($followType->type, ['in', 'out'])) {
                 // Check-in/check-out kayıtları için
                 $tempList[$key] = [
                     'id' => $record->id,
@@ -71,8 +71,6 @@ class ShiftFollowService
                     'time' => $time,
                     'type' => 'shift',
                     'action_type' => $followType->type,
-                    'branch' => $record->branch ? $record->branch->title : null,
-                    'zone' => $record->zone ? $record->zone->title : null
                 ];
             } else {
                 // Zone kayıtları için
@@ -82,8 +80,6 @@ class ShiftFollowService
                     'date' => $date,
                     'time' => $time,
                     'type' => 'zone',
-                    'zone_name' => $record->zone ? $record->zone->title : 'Bilinmeyen',
-                    'zone_id' => $record->zone ? $record->zone->id : null
                 ];
             }
         }
@@ -169,13 +165,13 @@ class ShiftFollowService
         }
 
         // Tolerans süresini hesapla
-        $tolerance = $checkType == 'check_in' ?
+        $tolerance = $checkType == 'in' ?
             $company->shift_start_tolerance :
             -$company->shift_end_tolerance;
 
         // Vardiya başlangıç/bitiş saatini al
         $shiftTime = Carbon::parse(
-            $checkType == 'check_in' ?
+            $checkType == 'in' ?
                 $user->shiftTime->start_time ?? $user->shift_start_time :
                 $user->shiftTime->end_time ?? $user->shift_end_time
         )
@@ -183,7 +179,7 @@ class ShiftFollowService
         ->addMinutes(\intval($tolerance) ?? 0);
 
         // Giriş/çıkış kontrolü
-        if ($checkType == 'check_out' && $checkTime <= $shiftTime) {
+        if ($checkType == 'out' && $checkTime <= $shiftTime) {
             // Erken çıkış
             return response()->json([
                 "status" => false,
@@ -193,7 +189,7 @@ class ShiftFollowService
             ], SymfonyResponse::HTTP_BAD_REQUEST);
         }
 
-        if ($checkType == 'check_in' && $checkTime >= $shiftTime) {
+        if ($checkType == 'in' && $checkTime >= $shiftTime) {
             // Geç giriş
             return response()->json([
                 "status" => false,

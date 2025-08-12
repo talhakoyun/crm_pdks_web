@@ -16,7 +16,7 @@ class ShiftFollowCheckRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'type' => 'required|in:check_in,check_out',
+            'type' => 'required|in:in,out',
             'branch_id' => 'required|exists:branches,id',
             'zone_id' => 'required|exists:zones,id',
             'shift_id' => 'required|exists:shift_definitions,id',
@@ -40,7 +40,7 @@ class ShiftFollowCheckRequest extends ApiRequest
     {
         return [
             'type.required' => 'İşlem tipi gereklidir.',
-            'type.in' => 'Geçersiz işlem tipi. Sadece check_in veya check_out olabilir.',
+            'type.in' => 'Geçersiz işlem tipi. Sadece in veya out olabilir.',
             'branch_id.required' => 'Şube bilgisi gereklidir.',
             'branch_id.exists' => 'Geçersiz şube seçimi.',
             'zone_id.required' => 'Bölge bilgisi gereklidir.',

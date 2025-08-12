@@ -96,7 +96,7 @@ class ShiftFollowReportService implements ShiftFollowReportServiceInterface
     {
         return [
             'entries' => $items->filter(function ($item) {
-                return $item->followType && $item->followType->type === 'check_in';
+                return $item->followType && $item->followType->type === 'in';
             })->values(),
             'exits' => $items->filter(function ($item) {
                 return $item->followType && $item->followType->type === 'check_out';
@@ -151,11 +151,11 @@ class ShiftFollowReportService implements ShiftFollowReportServiceInterface
 
             // İlk giriş ve son çıkış saatleri
             $firstEntry = $entries->first(function ($item) {
-                return $item->followType && $item->followType->type === 'check_in';
+                return $item->followType && $item->followType->type === 'in';
             });
 
             $lastExit = $entries->sortByDesc('transaction_date')->first(function ($item) {
-                return $item->followType && $item->followType->type === 'check_out';
+                return $item->followType && $item->followType->type === 'out';
             });
 
             // Çalışma süresi hesapla
@@ -174,10 +174,10 @@ class ShiftFollowReportService implements ShiftFollowReportServiceInterface
                 'total_break_minutes' => $breakDuration,
                 'net_work_minutes' => $workDuration !== null ? ($workDuration - $breakDuration) : null,
                 'entry_count' => $entries->filter(function ($item) {
-                    return $item->followType && $item->followType->type === 'check_in';
+                    return $item->followType && $item->followType->type === 'in';
                 })->count(),
                 'exit_count' => $entries->filter(function ($item) {
-                    return $item->followType && $item->followType->type === 'check_out';
+                    return $item->followType && $item->followType->type === 'out';
                 })->count(),
                 'break_count' => $entries->filter(function ($item) {
                     return $item->followType && ($item->followType->type === 'break_start' || $item->followType->type === 'break_end');
