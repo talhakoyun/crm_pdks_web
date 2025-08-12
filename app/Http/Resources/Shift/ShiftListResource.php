@@ -28,15 +28,22 @@ class ShiftListResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        // Service'ten gelen günlük eşleşmiş veri: ['date' => Y-m-d, 'startTime' => H:i, 'endTime' => H:i|-]
+        $date = $this['date'] ?? null;
+        $startTime = $this['startTime'] ?? null;
 
-        $data = [
-            'id' => $this['id'] ?? null,
-            'dateTime' => Carbon::parse($this['datetime'])->format('Y-m-d'),
+        $datetime = null;
+        if ($date && $startTime && $startTime !== '-') {
+            // 'YYYY-MM-DDTHH:MM:SS.uuuuuuZ' formatı (UTC)
+            $datetime = Carbon::parse($date . ' ' . $startTime)
+                ->utc()
+                ->format('Y-m-d\TH:i:s.u\Z');
+        }
+
+        return [
+            'datetime' => $datetime,
+            'start_time' => $startTime,
+            'end_time' => $this['endTime'] ?? null,
         ];
-
-        // 'shift' tipi için giriş/çıkış bilgileri
-        $data['action_type'] = $this['action_type'] ?? null; // check_in veya check_out
-
-        return $data;
     }
 }

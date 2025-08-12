@@ -51,53 +51,75 @@ class ShiftFollowService
      */
     private function formatShiftList(Collection $shiftList): array
     {
-        $tempList = [];
+        // Kayıtları tarihe göre ve kronolojik olarak sırala
+        $sorted = $shiftList->sortBy('transaction_date');
 
-        foreach ($shiftList as $record) {
-            $followType = $record->followType;
+        // Gün bazında giriş/çıkış eşleştirme listesi
+        $dailyPairs = [];
+
+        foreach ($sorted as $record) {
+            $followType = $record->followType ? $record->followType->type : null;
+
+            // Sadece giriş/çıkış kayıtlarını dikkate al
+            if (!in_array($followType, ['in', 'out'], true)) {
+                continue;
+            }
+
             $date = Carbon::parse($record->transaction_date)->format('Y-m-d');
             $time = Carbon::parse($record->transaction_date)->format('H:i');
-            $recordId = $record->id; // Benzersiz bir kimlik için kayıt ID'sini kullan
 
-            // Her kayıt için benzersiz bir anahtar oluştur
-            $key = $date . '_' . $recordId;
+            if (!array_key_exists($date, $dailyPairs)) {
+                $dailyPairs[$date] = [];
+            }
 
-            if ($followType && in_array($followType->type, ['in', 'out'])) {
-                // Check-in/check-out kayıtları için
-                $tempList[$key] = [
-                    'id' => $record->id,
-                    'datetime' => $record->transaction_date,
+            $dayList =& $dailyPairs[$date];
+            $lastIndex = count($dayList) - 1;
+
+            if ($followType === 'in') {
+                // Eğer açık bir pair varsa ve kapanmamışsa, onu '-' ile kapatıp yeni bir pair başlat
+                if ($lastIndex >= 0 && ($dayList[$lastIndex]['endTime'] === null)) {
+                    $dayList[$lastIndex]['endTime'] = '-';
+                }
+
+                $dayList[] = [
                     'date' => $date,
-                    'time' => $time,
-                    'type' => 'shift',
-                    'action_type' => $followType->type,
+                    'startTime' => $time,
+                    'endTime' => null,
+                    'start_id' => $record->id,
                 ];
-            } else {
-                // Zone kayıtları için
-                $tempList[$key] = [
-                    'id' => $record->id,
-                    'datetime' => $record->transaction_date,
-                    'date' => $date,
-                    'time' => $time,
-                    'type' => 'zone',
+            } elseif ($followType === 'out') {
+                // Son açık pair'i kapat
+                if ($lastIndex >= 0 && ($dayList[$lastIndex]['endTime'] === null)) {
+                    $dayList[$lastIndex]['endTime'] = $time;
+                    $dayList[$lastIndex]['end_id'] = $record->id;
+                } else {
+                    // Eşleşmeyen çıkış kaydı: görmezden gel
+                }
+            }
+        }
+
+        // Düz listeye çevir ve kapanmamış pair'leri '-' ile kapat
+        $result = [];
+        foreach ($dailyPairs as $date => $pairs) {
+            foreach ($pairs as $pair) {
+                // Sadece başlangıcı olan kayıtları göster; hiç kayıt yoksa (çift boş) ekleme
+                if ($pair['startTime'] === null) {
+                    continue;
+                }
+
+                if ($pair['endTime'] === null) {
+                    $pair['endTime'] = '-';
+                }
+
+                $result[] = [
+                    'date' => $pair['date'],
+                    'startTime' => $pair['startTime'],
+                    'endTime' => $pair['endTime'],
                 ];
             }
         }
 
-        // Kronolojik sıralama
-        usort($tempList, function ($a, $b) {
-            if (!$a['datetime'] || !$b['datetime']) {
-                return 0;
-            }
-
-            if ($a['datetime'] == $b['datetime']) {
-                return 0;
-            }
-
-            return $a['datetime'] < $b['datetime'] ? -1 : 1;
-        });
-
-        return array_values($tempList);
+        return $result;
     }
 
 
