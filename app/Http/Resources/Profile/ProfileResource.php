@@ -73,8 +73,6 @@ class ProfileResource extends JsonResource
             ],
             'settings' => [
                 'outside' => boolval($this->allow_outside),
-                'offline' => boolval($this->allow_offline),
-                'zone' => boolval($this->allow_zone)
             ],
             'shift' => [
                 'start' => Carbon::parse($shiftStartTimeRaw)->format('H:i'),

@@ -305,9 +305,6 @@ class UserController extends BaseController
                 \App\Models\UserPermit::create([
                     'user_id' => $obj->id,
                     'allow_outside' => $request->allow_outside ?? 0,
-                    'allow_offline' => 0, // Artık kullanılmıyor
-                    'allow_zone' => 0, // Artık kullanılmıyor
-                    'zone_flexible' => 0, // Artık kullanılmıyor
                     'is_active' => 1,
                 ]);
             }

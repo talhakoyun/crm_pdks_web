@@ -368,16 +368,13 @@ class ShiftFollowController extends BaseController
             // Branch yakınlık kontrolü için izinli şubeler
             $allowedBranchIds = $allowedBranches;
 
-            // Zone kontrolü yapılacak mı?
-            $checkZone = $userPermit ? (bool)$userPermit->allow_zone : false;
-
             // Dışarıda giriş yapma izni var mı?
             $allowOutside = $userPermit ? (bool)$userPermit->allow_outside : false;
 
-            // İstek ile gelen outside bilgisi (0/1)
+            // İstek ile gelen outside bilgisi (0/1) - 0 ise dışarıda giriş yapma izni yok
             $outside = (int)($data['outside'] ?? $request->input('outside', 0));
 
-            // Outside=1 ise ve yetki yoksa uyarı/hata
+            // Outside=1 ise ve yetki yoksa uyarı/hata - 1 ise dışarıda giriş yapma izni var
             if ($outside === 1 && !$allowOutside) {
                 return ApiResponse::error(
                     'Dışarıda giriş yapma yetkiniz bulunmamaktadır.',
@@ -385,38 +382,22 @@ class ShiftFollowController extends BaseController
                 );
             }
 
-            // Outside=1 ve yetki varsa şube/zone kontrolü atlanacak
+            // Outside=1 ve yetki varsa şube/zone kontrolü atlanacak - 1 ise dışarıda giriş yapma izni var
             $skipBranchAndZoneCheck = ($outside === 1 && $allowOutside);
 
-            // Dışarıda bilgisini is_outside olarak kayda geçirelim
+            // Dışarıda bilgisini is_outside olarak kayda geçirelim - 1 ise dışarıda giriş yapma izni var
             $data['is_outside'] = $outside;
             if (isset($data['outside'])) {
                 unset($data['outside']);
             }
-            // Orijinal outside alanını veri setinden çıkar
+            // Orijinal outside alanını veri setinden çıkar - 1 ise dışarıda giriş yapma izni var
             if (isset($data['outside'])) {
                 unset($data['outside']);
             }
 
-            // Zone esnek mi?
-            $zoneFlexible = $userPermit ? (bool)$userPermit->zone_flexible : false;
-
-            // Çevrimdışı giriş izni var mı?
-            $allowOffline = $userPermit ? (bool)$userPermit->allow_offline : false;
-
-            // Çevrimdışı durumda izin kontrolü
-            if (isset($data['is_offline']) && $data['is_offline'] && !$allowOffline) {
-                return ApiResponse::error(
-                    "Çevrimdışı giriş yapma yetkiniz bulunmamaktadır.",
-                    SymfonyResponse::HTTP_FORBIDDEN
-                );
-            }
 
             // Kullanıcı konum kontrolü gerektirmiyorsa (outside yetkili ve outside=1 ise) ya da esnekse
-            // Not: allow_zone=false olsa bile enter_branch_id tespiti için konum kontrolü yapılır
-            if ($skipBranchAndZoneCheck || $zoneFlexible) {
-                // Konum kontrolü yapmadan işlemi devam ettir
-            } else {
+            if (!$skipBranchAndZoneCheck) {
                 // Önce yetkili zone/poligon içindeyse doğrudan onu kullan
                 $foundZoneAndBranch = $this->findZoneAndBranchByPosition($userLat, $userLon, $allowedZones);
 
@@ -918,8 +899,6 @@ class ShiftFollowController extends BaseController
                 ->pluck('zone_id')
                 ->toArray();
 
-            // Zone kontrolü yapılacak mı?
-            $checkZone = $userPermit ? (bool)$userPermit->allow_zone : false;
 
             // Dışarıda giriş yapma izni var mı?
             $allowOutside = $userPermit ? (bool)$userPermit->allow_outside : false;
@@ -941,23 +920,8 @@ class ShiftFollowController extends BaseController
             // Dışarıda bilgisini is_outside olarak kayda geçirelim
             $data['is_outside'] = $outside;
 
-            // Zone esnek mi?
-            $zoneFlexible = $userPermit ? (bool)$userPermit->zone_flexible : false;
-
-            // Çevrimdışı giriş izni var mı?
-            $allowOffline = $userPermit ? (bool)$userPermit->allow_offline : false;
-
-            // Çevrimdışı durumda izin kontrolü
-            if (isset($data['is_offline']) && $data['is_offline'] && !$allowOffline) {
-                return ApiResponse::error(
-                    "Çevrimdışı giriş yapma yetkiniz bulunmamaktadır.",
-                    SymfonyResponse::HTTP_FORBIDDEN
-                );
-            }
-
             // Kullanıcı konum kontrolü gerektirmiyorsa (outside yetkili ve outside=1 ise) ya da esnekse
-            // Not: allow_zone=false olsa bile enter_branch_id tespiti için konum kontrolü yapılır
-            if ($skipBranchAndZoneCheck || $zoneFlexible) {
+            if ($skipBranchAndZoneCheck) {
                 // Konum kontrolü yapmadan işlemi devam ettir
             } else {
                 // Konum bilgisinden zone tespiti yapma

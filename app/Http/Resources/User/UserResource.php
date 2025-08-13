@@ -37,9 +37,7 @@ class UserResource extends JsonResource
                 'name' => $this->department?->title,
             ],
             'settings' => [
-                'outside' => boolval($this->allow_outside),
-                'offline' => boolval($this->allow_offline),
-                'zone' => boolval($this->allow_zone)
+                'outside' => boolval($this->allow_outside)
             ],
             'profile_photo' => !is_null($this->photo) ? env('APP_URL') . '/upload/user/' . $this->photo : env('APP_URL') . '/upload/default_user.png',
             'token_type' => $this->tokenData['token_type'] ?? 'Bearer',
