@@ -80,6 +80,12 @@ class ShiftFollowController extends BaseController
                 (float)$data['positions']['latitude'],
                 (float)$data['positions']['longitude']
             );
+        } elseif ($request->has('latitude') && $request->has('longitude')) {
+            // Alternatif olarak direkt latitude/longitude gönderimi desteklenir
+            $data['positions'] = new Point(
+                (float)$request->input('latitude'),
+                (float)$request->input('longitude')
+            );
         }
 
         return $data;
@@ -175,21 +181,15 @@ class ShiftFollowController extends BaseController
      */
     private function calculateDistance(float $lat1, float $lon1, float $lat2, float $lon2): float
     {
-        $earthRadius = 6371000; // Metre cinsinden dünya yarıçapı
-
+        // Haversine
+        $earthRadius = 6371000.0;
         $lat1Rad = deg2rad($lat1);
         $lat2Rad = deg2rad($lat2);
-        $lon1Rad = deg2rad($lon1);
-        $lon2Rad = deg2rad($lon2);
+        $deltaLat = deg2rad($lat2 - $lat1);
+        $deltaLon = deg2rad($lon2 - $lon1);
 
-        $deltaLat = $lat2Rad - $lat1Rad;
-        $deltaLon = $lon2Rad - $lon1Rad;
-
-        $a = sin($deltaLat/2) * sin($deltaLat/2) +
-             cos($lat1Rad) * cos($lat2Rad) *
-             sin($deltaLon/2) * sin($deltaLon/2);
-        $c = 2 * atan2(sqrt($a), sqrt(1-$a));
-
+        $a = sin($deltaLat / 2) ** 2 + cos($lat1Rad) * cos($lat2Rad) * sin($deltaLon / 2) ** 2;
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
         return $earthRadius * $c;
     }
 
@@ -365,11 +365,38 @@ class ShiftFollowController extends BaseController
                 ->pluck('zone_id')
                 ->toArray();
 
+            // Branch yakınlık kontrolü için izinli şubeler
+            $allowedBranchIds = $allowedBranches;
+
             // Zone kontrolü yapılacak mı?
             $checkZone = $userPermit ? (bool)$userPermit->allow_zone : false;
 
             // Dışarıda giriş yapma izni var mı?
             $allowOutside = $userPermit ? (bool)$userPermit->allow_outside : false;
+
+            // İstek ile gelen outside bilgisi (0/1)
+            $outside = (int)($data['outside'] ?? $request->input('outside', 0));
+
+            // Outside=1 ise ve yetki yoksa uyarı/hata
+            if ($outside === 1 && !$allowOutside) {
+                return ApiResponse::error(
+                    'Dışarıda giriş yapma yetkiniz bulunmamaktadır.',
+                    SymfonyResponse::HTTP_FORBIDDEN
+                );
+            }
+
+            // Outside=1 ve yetki varsa şube/zone kontrolü atlanacak
+            $skipBranchAndZoneCheck = ($outside === 1 && $allowOutside);
+
+            // Dışarıda bilgisini is_outside olarak kayda geçirelim
+            $data['is_outside'] = $outside;
+            if (isset($data['outside'])) {
+                unset($data['outside']);
+            }
+            // Orijinal outside alanını veri setinden çıkar
+            if (isset($data['outside'])) {
+                unset($data['outside']);
+            }
 
             // Zone esnek mi?
             $zoneFlexible = $userPermit ? (bool)$userPermit->zone_flexible : false;
@@ -385,22 +412,35 @@ class ShiftFollowController extends BaseController
                 );
             }
 
-            // Kullanıcı konum kontrolü gerektirmiyorsa (dışarıda giriş izni veya esnek zone varsa)
-            if ($allowOutside || !$checkZone || $zoneFlexible) {
+            // Kullanıcı konum kontrolü gerektirmiyorsa (outside yetkili ve outside=1 ise) ya da esnekse
+            // Not: allow_zone=false olsa bile enter_branch_id tespiti için konum kontrolü yapılır
+            if ($skipBranchAndZoneCheck || $zoneFlexible) {
                 // Konum kontrolü yapmadan işlemi devam ettir
             } else {
-                // Konum bilgisinden zone tespiti yapma
+                // Önce yetkili zone/poligon içindeyse doğrudan onu kullan
                 $foundZoneAndBranch = $this->findZoneAndBranchByPosition($userLat, $userLon, $allowedZones);
-                if ($foundZoneAndBranch === null) {
-                    return ApiResponse::error(
-                        "Bulunduğunuz konum hiçbir yetkili olduğunuz bölge içinde değil veya bölgelere çok uzaksınız.",
-                        SymfonyResponse::HTTP_BAD_REQUEST
-                    );
-                }
 
-                // Bulunan zone ve branch'ı data'ya ekle
-                $data['zone_id'] = $foundZoneAndBranch['zone_id'];
-                $data['branch_id'] = $foundZoneAndBranch['branch_id'];
+                if ($foundZoneAndBranch !== null) {
+                    $data['zone_id'] = $foundZoneAndBranch['zone_id'];
+                    $data['branch_id'] = $foundZoneAndBranch['branch_id'];
+                    if (!empty($allowedBranches) && !in_array($foundZoneAndBranch['branch_id'], $allowedBranches, true)) {
+                        return ApiResponse::error('Bu şubeye giriş yetkiniz bulunmamaktadır.', SymfonyResponse::HTTP_FORBIDDEN);
+                    }
+                    $data['enter_branch_id'] = $foundZoneAndBranch['branch_id'];
+                } else {
+                    // En yakın zone'u (tüm zonelerden) bul, eşik dahilindeyse yetki durumuna göre karar ver
+                    $nearest = $this->findNearestZoneByPosition($userLat, $userLon, 150);
+                    if ($nearest === null) {
+                        return ApiResponse::error('Konuma yakın değilsiniz. Lütfen yetkili olduğunuz bir şubeye yaklaşın.', SymfonyResponse::HTTP_BAD_REQUEST);
+                    }
+                    $isAllowed = in_array($nearest['branch_id'], $allowedBranches, true);
+                    if (!$isAllowed) {
+                        return ApiResponse::error('Bu şubeye giriş yetkiniz bulunmamaktadır.', SymfonyResponse::HTTP_FORBIDDEN);
+                    }
+                    $data['branch_id'] = $nearest['branch_id'];
+                    $data['zone_id'] = $nearest['zone_id'];
+                    $data['enter_branch_id'] = $nearest['branch_id'];
+                }
             }
 
             $inTolerance = Setting::where('key', 'in_tolerance')->first()->value ?? 0;
@@ -539,7 +579,7 @@ class ShiftFollowController extends BaseController
             }
             $shiftFollowResource = new ShiftFollowResource($shiftFollow);
             return ApiResponse::success(
-                [$shiftFollowResource],
+                [],
                 $message,
                 SymfonyResponse::HTTP_CREATED
             );
@@ -579,16 +619,13 @@ class ShiftFollowController extends BaseController
 
         foreach ($zones as $zone) {
             if ($zone->positions) {
-                // Önce polygon içinde kontrol et (daha kesin sonuç)
                 $isInPolygon = $this->isPointInPolygon($lat, $lon, $zone->positions);
 
                 if ($isInPolygon) {
-                    // Polygon içindeyse hemen bu zone'u kullan
                     $foundZone = $zone;
                     break;
                 }
 
-                // Polygon içinde değilse, merkeze olan mesafeyi kontrol et
                 $center = $this->calculatePolygonCentroid($zone->positions);
 
                 if ($center && isset($center['lat']) && isset($center['lng'])) {
@@ -620,6 +657,103 @@ class ShiftFollowController extends BaseController
 
         // Hiçbir zone bulunamadıysa null döndür
         return null;
+    }
+
+    /**
+     * Tüm zoneler içinde en yakını bulur; eşik mesafe içinde ise döndürür.
+     * return ['zone_id'=>int,'branch_id'=>int,'distance'=>float] | null
+     */
+    private function findNearestZoneByPosition(float $lat, float $lon, float $thresholdMeters = 150): ?array
+    {
+        // Öncelik: şubeye doğrudan bağlı poligon varsa onu kullan, yoksa zone'lar
+        $branches = Branch::whereNotNull('positions')->get();
+        $candidates = [];
+        foreach ($branches as $branch) {
+            $candidates[] = ['type' => 'branch', 'id' => $branch->id, 'positions' => $branch->positions, 'branch_id' => $branch->id, 'zone_id' => null];
+        }
+        $zones = Zone::whereNotNull('positions')->get();
+        foreach ($zones as $zone) {
+            $candidates[] = ['type' => 'zone', 'id' => $zone->id, 'positions' => $zone->positions, 'branch_id' => $zone->branch_id, 'zone_id' => $zone->id];
+        }
+        if (empty($candidates)) {
+            return null;
+        }
+
+        $closest = null;
+        $closestDistance = PHP_FLOAT_MAX;
+
+        foreach ($candidates as $item) {
+            if (!$item['positions']) {
+                continue;
+            }
+            $center = $this->calculatePolygonCentroid($item['positions']);
+            if ($center && isset($center['lat']) && isset($center['lng'])) {
+                $distance = $this->calculateDistance($lat, $lon, $center['lat'], $center['lng']);
+                if ($distance < $closestDistance) {
+                    $closestDistance = $distance;
+                    $closest = $item;
+                }
+            }
+        }
+
+        if (!$closest || $closestDistance > $thresholdMeters) {
+            return null;
+        }
+
+        return [
+            'zone_id' => $closest['zone_id'],
+            'branch_id' => $closest['branch_id'],
+            'distance' => $closestDistance,
+        ];
+    }
+
+    /**
+     * Haversine kullanarak en yakın şubeyi ve yetki durumunu döndürür.
+     * return ['branch_id'=>int,'distance'=>float,'isAllowed'=>bool] | null
+     */
+    private function findClosestAllowedBranchByHaversine(float $lat, float $lon, array $allowedBranchIds, float $thresholdMeters = 150): ?array
+    {
+        // Allowed şubelerin zonelerini (polygon) kullanarak merkez nokta üzerinden yakınlık ölç
+        if (empty($allowedBranchIds)) {
+            return null;
+        }
+
+        $zones = Zone::whereIn('branch_id', $allowedBranchIds)
+            ->whereNotNull('positions')
+            ->get(['id', 'branch_id', 'positions']);
+
+        if ($zones->isEmpty()) {
+            return null;
+        }
+
+        $closestZone = null;
+        $closestDistance = PHP_FLOAT_MAX;
+
+        foreach ($zones as $zone) {
+            $center = $this->calculatePolygonCentroid($zone->positions);
+            if (!$center || !isset($center['lat'], $center['lng'])) {
+                continue;
+            }
+            $distance = $this->calculateDistance($lat, $lon, (float)$center['lat'], (float)$center['lng']);
+            if ($distance < $closestDistance) {
+                $closestDistance = $distance;
+                $closestZone = $zone;
+            }
+        }
+
+        if (!$closestZone) {
+            return null;
+        }
+
+        if ($closestDistance > $thresholdMeters) {
+            return null;
+        }
+
+        return [
+            'branch_id' => $closestZone->branch_id,
+            'distance' => $closestDistance,
+            'isAllowed' => true,
+        ];
     }
 
     /**
@@ -734,6 +868,11 @@ class ShiftFollowController extends BaseController
                     (float)$request->positions['latitude'],
                     (float)$request->positions['longitude']
                 );
+            } elseif ($request->has('latitude') && $request->has('longitude')) {
+                $data['positions'] = new Point(
+                    (float)$request->input('latitude'),
+                    (float)$request->input('longitude')
+                );
             } else {
                 return ApiResponse::error(
                     'Konum bilgisi gereklidir.',
@@ -785,6 +924,23 @@ class ShiftFollowController extends BaseController
             // Dışarıda giriş yapma izni var mı?
             $allowOutside = $userPermit ? (bool)$userPermit->allow_outside : false;
 
+            // İstek ile gelen outside bilgisi (0/1)
+            $outside = (int)$request->input('outside', 0);
+
+            // Outside=1 ise ve yetki yoksa uyarı/hata
+            if ($outside === 1 && !$allowOutside) {
+                return ApiResponse::error(
+                    'Dışarıda giriş yapma yetkiniz bulunmamaktadır.',
+                    SymfonyResponse::HTTP_FORBIDDEN
+                );
+            }
+
+            // Outside=1 ve yetki varsa şube/zone kontrolü atlanacak
+            $skipBranchAndZoneCheck = ($outside === 1 && $allowOutside);
+
+            // Dışarıda bilgisini is_outside olarak kayda geçirelim
+            $data['is_outside'] = $outside;
+
             // Zone esnek mi?
             $zoneFlexible = $userPermit ? (bool)$userPermit->zone_flexible : false;
 
@@ -799,8 +955,9 @@ class ShiftFollowController extends BaseController
                 );
             }
 
-            // Kullanıcı konum kontrolü gerektirmiyorsa (dışarıda giriş izni veya esnek zone varsa)
-            if ($allowOutside || !$checkZone || $zoneFlexible) {
+            // Kullanıcı konum kontrolü gerektirmiyorsa (outside yetkili ve outside=1 ise) ya da esnekse
+            // Not: allow_zone=false olsa bile enter_branch_id tespiti için konum kontrolü yapılır
+            if ($skipBranchAndZoneCheck || $zoneFlexible) {
                 // Konum kontrolü yapmadan işlemi devam ettir
             } else {
                 // Konum bilgisinden zone tespiti yapma
@@ -816,6 +973,17 @@ class ShiftFollowController extends BaseController
                 // Bulunan zone ve branch'ı data'ya ekle
                 $data['zone_id'] = $foundZoneAndBranch['zone_id'];
                 $data['branch_id'] = $foundZoneAndBranch['branch_id'];
+
+                // Şube yetki kontrolü (UserBranches)
+                if (!empty($allowedBranches) && !in_array($foundZoneAndBranch['branch_id'], $allowedBranches, true)) {
+                    return ApiResponse::error(
+                        'Bu şubeye giriş yetkiniz bulunmamaktadır.',
+                        SymfonyResponse::HTTP_FORBIDDEN
+                    );
+                }
+
+                // Giriş yapılan şubeyi ayrıca enter_branch_id olarak set edelim (varsa)
+                $data['enter_branch_id'] = $foundZoneAndBranch['branch_id'];
             }
 
             $inTolerance = Setting::where('key', 'in_tolerance')->first()->value ?? 0;
@@ -943,7 +1111,7 @@ class ShiftFollowController extends BaseController
             $message = $type == 1 ? 'QR kod ile giriş kaydınız başarıyla oluşturuldu' : 'QR kod ile çıkış kaydınız başarıyla oluşturuldu';
             $shiftFollowResource = new ShiftFollowResource($shiftFollow);
             return ApiResponse::success(
-                [$shiftFollowResource],
+                [],
                 $message,
                 SymfonyResponse::HTTP_CREATED
             );

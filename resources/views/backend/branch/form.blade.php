@@ -37,8 +37,8 @@
                                     </span>
                                     <input type="text" class="form-control" name="phone_number" id="phone"
                                         placeholder="Lütfen şube telefonu giriniz"
-                                        value="{{ old('phone') ?? ($item->phone ?? '') }}">
-                                    <x-form-error field="phone" />
+                                        value="{{ old('phone_number') ?? ($item->phone_number ?? '') }}">
+                                    <x-form-error field="phone_number" />
                                 </div>
                             </div>
                             <div class="col-12">
