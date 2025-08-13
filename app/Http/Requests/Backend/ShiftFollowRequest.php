@@ -35,10 +35,10 @@ class ShiftFollowRequest extends FormRequest
         return [
             'user_id.required' => 'Kullanıcı seçilmedi.',
             'user_id.exists' => 'Kullanıcı bulunamadı.',
-            'shift_follow_type_id.required' => 'Vardiya takibi tipi seçilmedi.',
-            'shift_follow_type_id.exists' => 'Vardiya takibi tipi bulunamadı.',
-            'shift_id.required' => 'Vardiya seçilmedi.',
-            'shift_id.exists' => 'Vardiya bulunamadı.',
+            'shift_follow_type_id.required' => 'İşlem tipi seçilmedi.',
+            'shift_follow_type_id.exists' => 'İşlem tipi bulunamadı.',
+            'shift_id.required' => 'Giriş çıkış tarihi seçilmedi.',
+            'shift_id.exists' => 'Giriş çıkış tarihi bulunamadı.',
             'transaction_date.required' => 'Tarih seçilmedi.',
             'transaction_date.date' => 'Tarih geçersiz formatta.',
         ];

@@ -19,7 +19,7 @@ class ShiftFollowController extends BaseController
 
     public function __construct()
     {
-        $this->title = 'Vardiya Takibi';
+        $this->title = 'Giriş Çıkış Kayıtları';
         $this->page = 'shift_follow';
         $this->upload = 'shift_follow';
         $this->model = new ShiftFollow();
@@ -27,7 +27,7 @@ class ShiftFollowController extends BaseController
         $this->relation = ['user', 'followType', 'company', 'branch', 'enterBranch'];
         $this->view = (object)array(
             'breadcrumb' => array(
-                'Vardiya Takibi' => route('backend.shift_follow_list'),
+                'Giriş Çıkış Kayıtları' => route('backend.shift_follow_list'),
             ),
         );
 

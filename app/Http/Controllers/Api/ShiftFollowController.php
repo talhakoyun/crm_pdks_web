@@ -47,7 +47,7 @@ class ShiftFollowController extends BaseController
     public function __construct(ShiftFollowService $shiftFollowService)
     {
         $this->model = new ShiftFollow();
-        $this->modelName = 'Vardiya Takibi';
+        $this->modelName = 'Giriş Çıkış Kayıtları';
         $this->relationships = ['user', 'branch', 'zone', 'shift', 'followType'];
         $this->searchableFields = ['transaction_date', 'note'];
         $this->sortableFields = ['id', 'transaction_date', 'created_at', 'updated_at'];
