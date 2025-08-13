@@ -33,17 +33,17 @@ class ShiftFollowController extends BaseController
 
         // Middleware ile rol bazlı erişim kontrolleri
         $this->middleware(function ($request, $next) {
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-            $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-            $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-            $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
+            $role = Auth::user()->role_id;
+            $isAdmin = $role == 2;
+            $isSuperAdmin = $role == 1;
+            $isCompanyOwner = $role == 3;
+            $isCompanyAdmin = $role == 4;
+            $isBranchAdmin = $role == 5;
+            $isDepartmentAdmin = $role == 6;
 
             $companyId = $request->attributes->get('company_id');
             $branchId = $request->attributes->get('branch_id');
             $departmentId = $request->attributes->get('department_id');
-
             // Kullanıcıların rol bazlı filtrelenmesi
             $usersQuery = User::where('role_id', 7)->active();
 
@@ -77,12 +77,13 @@ class ShiftFollowController extends BaseController
     public function list(Request $request)
     {
         // Vardiya takiplerini rol bazlı filtreleme için özel sorgu oluşturalım
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-        $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
+        $role = Auth::user()->role_id;
+        $isAdmin = $role == 2;
+        $isSuperAdmin = $role == 1;
+        $isCompanyOwner = $role == 3;
+        $isCompanyAdmin = $role == 4;
+        $isBranchAdmin = $role == 5;
+        $isDepartmentAdmin = $role == 6;
 
         $companyId = $request->attributes->get('company_id');
         $branchId = $request->attributes->get('branch_id');

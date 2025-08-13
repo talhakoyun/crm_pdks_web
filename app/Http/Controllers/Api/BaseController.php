@@ -94,16 +94,16 @@ abstract class BaseController extends Controller
             $query->with($this->relationships);
         }
 
-        // Rol ve erişim kontrolü
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
+            $role = Auth::user()->role_id;
+            $isSuperAdmin = $role == 1;
+            $isAdmin = $role == 2;
+            $isCompanyOwner = $role == 3;
+            $isCompanyAdmin = $role == 4;
+            $isBranchAdmin = $role == 5;
 
-        $companyId = $request->attributes->get('company_id');
-        $branchId = $request->attributes->get('branch_id');
-        $userId = $request->attributes->get('user_id');
+            $companyId = $request->attributes->get('company_id');
+            $branchId = $request->attributes->get('branch_id');
+            $userId = $request->attributes->get('user_id');
 
         $table = $this->model->getTable();
         $columns = Schema::getColumnListing($table);
@@ -233,6 +233,8 @@ abstract class BaseController extends Controller
         }
     }
 
+
+
     /**
      * Store için veriyi hazırlar.
      *
@@ -245,11 +247,10 @@ abstract class BaseController extends Controller
 
         $user = Auth::user();
         if ($user) {
-            // Rol ve yetki bilgilerini alalım
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isAdmin = $request->attributes->get('is_admin', false);
+            $role = Auth::user()->role_id;
+            $isSuperAdmin = $role == 1;
+            $isAdmin = $role == 2;
 
-            // Eğer süper admin veya admin değilse, şirket ve şube bilgisi otomatik atanmalı
             if (!$isSuperAdmin && !$isAdmin) {
                 $companyId = $request->attributes->get('company_id');
                 if ($companyId && !isset($data['company_id'])) {
@@ -390,34 +391,30 @@ abstract class BaseController extends Controller
      */
     protected function authorizeItemAccess(Model $item, Request $request): bool
     {
-        // Rol ve erişim kontrolü
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
+            $role = Auth::user()->role_id;
+            $isSuperAdmin = $role == 1;
+            $isAdmin = $role == 2;
+            $isCompanyOwner = $role == 3;
+            $isCompanyAdmin = $role == 4;
+            $isBranchAdmin = $role == 5;
 
-        $companyId = $request->attributes->get('company_id');
-        $branchId = $request->attributes->get('branch_id');
-        $userId = $request->attributes->get('user_id');
+            $companyId = $request->attributes->get('company_id');
+            $branchId = $request->attributes->get('branch_id');
+            $userId = $request->attributes->get('user_id');
 
-        // Süper Admin ve Admin her şeye erişebilir
         if ($isSuperAdmin || $isAdmin) {
             return true;
         }
 
-        // Şirket kontrolü
         if (isset($item->company_id) && !is_null($companyId) && $item->company_id != $companyId) {
             return false;
         }
 
-        // Şube kontrolü - Şirket sahibi ve yöneticisi tüm şubelere erişebilir
         if (!$isCompanyOwner && !$isCompanyAdmin &&
             isset($item->branch_id) && !is_null($branchId) && $item->branch_id != $branchId) {
             return false;
         }
 
-        // Kullanıcı kontrolü - Sadece personel için
         if (!$isBranchAdmin && isset($item->user_id) && !is_null($userId) && $item->user_id != $userId) {
             return false;
         }

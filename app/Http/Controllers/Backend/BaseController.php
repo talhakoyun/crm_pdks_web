@@ -49,17 +49,9 @@ class BaseController extends Controller
         if ($request->has('datatable')) {
             $select = (isset($this->listQuery) ? $this->listQuery : $this->model::select());
 
-            // Rol ve erişim kontrolü
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-            $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-            $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-            $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-            $companyId = $request->attributes->get('company_id');
-            $branchId = $request->attributes->get('branch_id');
-            $departmentId = $request->attributes->get('department_id');
-            $userId = $request->attributes->get('user_id');
+            // Rol ve erişim kontrolü (ortak metod kullanımı)
+            $roleData = $this->getRoleDataFromRequest($request);
+            extract($roleData);
             $loggedInUserId = Auth::check() ? Auth::id() : null;
 
             $table = $this->model->getTable();
@@ -651,5 +643,28 @@ class BaseController extends Controller
 
         Cache::flush();
         return response()->json(['status' => true]);
+    }
+
+    /**
+     * Request'ten rol ve yetki bilgilerini çıkarır.
+     *
+     * @param Request $request
+     * @return array
+     */
+    protected function getRoleDataFromRequest(Request $request): array
+    {
+        $role = Auth::user()->role_id;
+        return [
+            'isSuperAdmin' => $role == 1,
+            'isAdmin' => $role == 2,
+            'isCompanyOwner' => $role == 3,
+            'isCompanyAdmin' => $role == 4,
+            'isBranchAdmin' => $role == 5,
+            'isDepartmentAdmin' => $role == 6,
+            'companyId' => $request->attributes->get('company_id'),
+            'branchId' => $request->attributes->get('branch_id'),
+            'departmentId' => $request->attributes->get('department_id'),
+            'userId' => $request->attributes->get('user_id'),
+        ];
     }
 }
