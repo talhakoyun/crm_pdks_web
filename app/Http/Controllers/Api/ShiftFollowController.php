@@ -18,7 +18,6 @@ use App\Models\UserShift;
 use App\Models\UserShiftCustom;
 use App\Models\UserBranches;
 use App\Models\UserZones;
-use App\Models\Branch;
 use App\Models\Zone;
 use App\Models\UserPermit;
 use App\Services\ShiftFollowService;
@@ -646,12 +645,8 @@ class ShiftFollowController extends BaseController
      */
     private function findNearestZoneByPosition(float $lat, float $lon, float $thresholdMeters = 150): ?array
     {
-        // Öncelik: şubeye doğrudan bağlı poligon varsa onu kullan, yoksa zone'lar
-        $branches = Branch::whereNotNull('positions')->get();
+        // Sadece zone poligonları üzerinden en yakın alanı hesapla
         $candidates = [];
-        foreach ($branches as $branch) {
-            $candidates[] = ['type' => 'branch', 'id' => $branch->id, 'positions' => $branch->positions, 'branch_id' => $branch->id, 'zone_id' => null];
-        }
         $zones = Zone::whereNotNull('positions')->get();
         foreach ($zones as $zone) {
             $candidates[] = ['type' => 'zone', 'id' => $zone->id, 'positions' => $zone->positions, 'branch_id' => $zone->branch_id, 'zone_id' => $zone->id];
