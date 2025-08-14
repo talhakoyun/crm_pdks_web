@@ -73,18 +73,21 @@ class ShiftFollowController extends BaseController
         $data['ip_address'] = $request->ip();
         $data['user_agent'] = $request->userAgent();
 
-        // Pozisyon bilgisi varsa Point formatına dönüştür
-        if (isset($data['positions']) && is_array($data['positions'])) {
-            $data['positions'] = new Point(
-                (float)$data['positions']['latitude'],
-                (float)$data['positions']['longitude']
-            );
-        } elseif ($request->has('latitude') && $request->has('longitude')) {
-            // Alternatif olarak direkt latitude/longitude gönderimi desteklenir
+        // Pozisyon bilgisi: doğrudan latitude/longitude alanları veya `positions` içinde olabilir
+        if ($request->has('latitude') && $request->has('longitude')) {
             $data['positions'] = new Point(
                 (float)$request->input('latitude'),
                 (float)$request->input('longitude')
             );
+            // Düz alanlar tablo kolonu olmadığı için kayıttan çıkar
+            unset($data['latitude'], $data['longitude']);
+        } elseif (isset($data['positions']) && is_array($data['positions'])) {
+            $data['positions'] = new Point(
+                (float)($data['positions']['latitude'] ?? $data['positions'][0] ?? 0),
+                (float)($data['positions']['longitude'] ?? $data['positions'][1] ?? 0)
+            );
+            // Olası düz alanlar gelmişse temizle
+            unset($data['latitude'], $data['longitude']);
         }
 
         return $data;
@@ -426,8 +429,17 @@ class ShiftFollowController extends BaseController
             $inTolerance = Setting::where('key', 'in_tolerance')->first()->value ?? 0;
             $outTolerance = Setting::where('key', 'out_tolerance')->first()->value ?? 0;
 
-            if (isset($data['shift_follow_type_id'])) {
-                $followType = ShiftFollowType::find($data['shift_follow_type_id']);
+            if (isset($data['type'])) {
+                $followType = ShiftFollowType::where('id', (int)$data['type'])->first();
+                if (!$followType) {
+                    return ApiResponse::error(
+                        'Geçersiz işlem tipi.',
+                        SymfonyResponse::HTTP_BAD_REQUEST
+                    );
+                }
+                // Veritabanı alanı `shift_follow_type_id` olduğu için map et
+                $data['shift_follow_type_id'] = $followType->id;
+                unset($data['type']);
 
                 $checkInType = ShiftFollowType::where('type', 'in')->first();
                 $checkOutType = ShiftFollowType::where('type', 'out')->first();
