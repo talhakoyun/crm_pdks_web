@@ -30,10 +30,6 @@ return new class extends Migration
             $table->tinyInteger('is_qr')->default(0);
             $table->string('qr_type', 255)->nullable();
             $table->tinyInteger('is_active')->default(1);
-            $table->tinyInteger('is_late')->default(0);
-            $table->integer('late_minutes')->nullable();
-            $table->tinyInteger('is_early_out')->default(0);
-            $table->integer('early_out_minutes')->nullable();
             $table->integer('created_by')->nullable();
             $table->integer('updated_by')->nullable();
             $table->integer('deleted_by')->nullable();
