@@ -32,6 +32,7 @@ class ShiftFollowResource extends JsonResource
             'transaction_date' => $this->transaction_date,
             'type' => $this->followType?->type,
             'status' => $this->status,
+            'status_minutes' => $this->status_minutes,
             'shift' => $this->whenLoaded('shift', function() {
                 return [
                     'id' => $this->shift->id,

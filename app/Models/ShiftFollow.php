@@ -15,6 +15,47 @@ class ShiftFollow extends BaseModel
     protected $casts = [
         'positions' => Point::class,
     ];
+
+    // Status constants
+    const STATUS_NORMAL = 'normal';
+    const STATUS_LATE = 'late';
+    const STATUS_EARLY_OUT = 'early_out';
+
+    /**
+     * Get all available statuses
+     */
+    public static function getStatuses(): array
+    {
+        return [
+            self::STATUS_NORMAL => 'Normal',
+            self::STATUS_LATE => 'Geç Giriş',
+            self::STATUS_EARLY_OUT => 'Erken Çıkış'
+        ];
+    }
+
+    /**
+     * Check if the record is late
+     */
+    public function isLate(): bool
+    {
+        return $this->status === self::STATUS_LATE;
+    }
+
+    /**
+     * Check if the record is early out
+     */
+    public function isEarlyOut(): bool
+    {
+        return $this->status === self::STATUS_EARLY_OUT;
+    }
+
+    /**
+     * Get status minutes with default value
+     */
+    public function getStatusMinutesAttribute($value): int
+    {
+        return $value ?? 0;
+    }
     public function company()
     {
         return $this->belongsTo(Company::class);

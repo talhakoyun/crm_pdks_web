@@ -73,9 +73,7 @@ class DashboardController extends Controller
             ->whereHas('followType', function ($query) {
                 $query->where('type', 'in');
             })
-            ->whereHas('shift', function ($query) {
-                $query->whereRaw('TIME(transaction_date) > TIME(ADDTIME(start_time, "00:15:00"))');
-            })
+            ->where('status', \App\Models\ShiftFollow::STATUS_LATE)
             ->get();
 
         // Haftalık giriş istatistikleri
@@ -220,17 +218,9 @@ class DashboardController extends Controller
                     $workDuration = $checkInTime->diffInMinutes(Carbon::now());
                 }
 
-                // Giriş saati, vardiya başlangıç saatine göre geç mi kontrol et
-                if ($lastCheckIn->shift) {
-                    $shiftStartTime = Carbon::parse($lastCheckIn->shift->start_time)->setDate(
-                        $checkInTime->year,
-                        $checkInTime->month,
-                        $checkInTime->day
-                    );
-
-                    if ($checkInTime->gt($shiftStartTime->copy()->addMinutes(15))) {
-                        $status = $status == 'checked_out' ? 'late_checked_out' : 'late';
-                    }
+                // Status alanından geç giriş kontrolü
+                if ($lastCheckIn->status === \App\Models\ShiftFollow::STATUS_LATE) {
+                    $status = $status == 'checked_out' ? 'late_checked_out' : 'late';
                 }
             }
 

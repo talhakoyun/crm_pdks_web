@@ -206,9 +206,9 @@ class ShiftFollowService
             return response()->json([
                 "status" => false,
                 "message" => "Lütfen " . $this->calculateDateDiff($checkTime, $shiftTime) . " erken çıkış sebebinizi belirtiniz.",
-                "note_required" => true,
+                "note" => false,
                 "data" => []
-            ], SymfonyResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         if ($checkType == 'in' && $checkTime >= $shiftTime) {
@@ -216,9 +216,9 @@ class ShiftFollowService
             return response()->json([
                 "status" => false,
                 "message" => "Lütfen " . $this->calculateDateDiff($shiftTime, $checkTime) . " geç giriş sebebinizi belirtiniz.",
-                "note_required" => true,
+                "note" => false,
                 "data" => []
-            ], SymfonyResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         return ["status" => true];

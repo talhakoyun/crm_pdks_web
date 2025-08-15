@@ -414,7 +414,7 @@ class ShiftFollowController extends BaseController
                     // En yakın zone'u (tüm zonelerden) bul, eşik dahilindeyse yetki durumuna göre karar ver
                     $nearest = $this->findNearestZoneByPosition($userLat, $userLon, 150);
                     if ($nearest === null) {
-                        return ApiResponse::error('Konuma yakın değilsiniz. Lütfen yetkili olduğunuz bir şubeye yaklaşın.', SymfonyResponse::HTTP_BAD_REQUEST);
+                        return ApiResponse::error('Konumunuz işlem için uygun değil.', SymfonyResponse::HTTP_BAD_REQUEST);
                     }
                     $isAllowed = in_array($nearest['branch_id'], $allowedBranches, true);
                     if (!$isAllowed) {
@@ -485,14 +485,16 @@ class ShiftFollowController extends BaseController
                             // Eğer tolerans aşıldıysa açıklama zorunlu
                             if ($lateMinutes > $inTolerance) {
                                 if (empty($data['note'])) {
-                                    return ApiResponse::error(
-                                        'Geç giriş yaptığınız için açıklama girmeniz zorunludur.',
-                                        SymfonyResponse::HTTP_BAD_REQUEST
-                                    );
+                                    return response()->json([
+                                        "status" => false,
+                                        "message" => "Lütfen " . $this->calculateDateDiff($shiftStartTime, $transactionDate) . " geç giriş sebebinizi belirtiniz.",
+                                        "note" => false,
+                                        "data" => []
+                                    ], 400);
                                 }
 
-                                $data['is_late'] = true;
-                                $data['late_minutes'] = $lateMinutes;
+                                $data['status'] = ShiftFollow::STATUS_LATE;
+                                $data['status_minutes'] = $lateMinutes;
                             }
                         }
                     }
@@ -516,23 +518,23 @@ class ShiftFollowController extends BaseController
 
                         // Erken çıkma kontrolü - ShiftDefinition tablosundaki end_time kullanarak
                         $shiftEndTime = Carbon::parse($currentDate . ' ' . $userShift->end_time);
-
                         // Eğer transactionDate, shiftEndTime'dan önce ise (yani erken çıkıyorsa)
                         if ($transactionDate < $shiftEndTime) {
-                            $earlyMinutes = $shiftEndTime->diffInMinutes($transactionDate);
-
+                            $earlyMinutes = $transactionDate->diffInMinutes($shiftEndTime);
                             // Eğer tolerans aşıldıysa açıklama zorunlu
                             if ($earlyMinutes > $outTolerance) {
                                 if (empty($data['note'])) {
-                                    return ApiResponse::error(
-                                        'Erken çıkış yaptığınız için açıklama girmeniz zorunludur.',
-                                        SymfonyResponse::HTTP_BAD_REQUEST
-                                    );
+                                    return response()->json([
+                                        "status" => false,
+                                        "message" => "Lütfen " . $this->calculateDateDiff($transactionDate, $shiftEndTime) . " erken çıkış sebebinizi belirtiniz.",
+                                        "note" => false,
+                                        "data" => []
+                                    ], 400);
                                 }
 
                                 // Erken çıkma durumunu kaydet
-                                $data['is_early_out'] = true;
-                                $data['early_out_minutes'] = $earlyMinutes;
+                                $data['status'] = ShiftFollow::STATUS_EARLY_OUT;
+                                $data['status_minutes'] = $earlyMinutes;
                             }
                         }
                     }
@@ -1005,14 +1007,16 @@ class ShiftFollowController extends BaseController
                         // Eğer tolerans aşıldıysa açıklama zorunlu
                         if ($lateMinutes > $inTolerance) {
                             if (empty($data['note'])) {
-                                return ApiResponse::error(
-                                    'Geç giriş yaptığınız için açıklama girmeniz zorunludur.',
-                                    SymfonyResponse::HTTP_BAD_REQUEST
-                                );
+                                return response()->json([
+                                    "status" => false,
+                                    "message" => "Lütfen " . $this->calculateDateDiff($shiftStartTime, $now) . " geç giriş sebebinizi belirtiniz.",
+                                    "note" => false,
+                                    "data" => []
+                                ], 400);
                             }
 
-                            $data['is_late'] = true;
-                            $data['late_minutes'] = $lateMinutes;
+                            $data['status'] = ShiftFollow::STATUS_LATE;
+                            $data['status_minutes'] = $lateMinutes;
                         }
                     }
                 }
@@ -1044,15 +1048,17 @@ class ShiftFollowController extends BaseController
                         // Eğer tolerans aşıldıysa açıklama zorunlu
                         if ($earlyMinutes > $outTolerance) {
                             if (empty($data['note'])) {
-                                return ApiResponse::error(
-                                    'Erken çıkış yaptığınız için açıklama girmeniz zorunludur.',
-                                    SymfonyResponse::HTTP_BAD_REQUEST
-                                );
+                                return response()->json([
+                                    "status" => false,
+                                    "message" => "Lütfen " . $this->calculateDateDiff($now, $shiftEndTime) . " erken çıkış sebebinizi belirtiniz.",
+                                    "note" => false,
+                                    "data" => []
+                                ], 400);
                             }
 
                             // Erken çıkma durumunu kaydet
-                            $data['is_early_out'] = true;
-                            $data['early_out_minutes'] = $earlyMinutes;
+                            $data['status'] = ShiftFollow::STATUS_EARLY_OUT;
+                            $data['status_minutes'] = $earlyMinutes;
                         }
                     }
                 }
@@ -1093,6 +1099,37 @@ class ShiftFollowController extends BaseController
                 SymfonyResponse::HTTP_INTERNAL_SERVER_ERROR
             );
         }
+    }
+
+    /**
+     * İki tarih arasındaki farkı hesaplar.
+     *
+     * @param Carbon $start
+     * @param Carbon $end
+     * @return string
+     */
+    private function calculateDateDiff(Carbon $start, Carbon $end): string
+    {
+        $diff = $end->diff($start);
+        $hours = $diff->h + ($diff->days * 24);
+        $minutes = $diff->i;
+        $seconds = $diff->s;
+
+        $result = [];
+
+        if ($hours > 0) {
+            $result[] = $hours . " saat";
+        }
+
+        if ($minutes > 0) {
+            $result[] = $minutes . " dakika";
+        }
+
+        if ($seconds > 0 && count($result) === 0) {
+            $result[] = $seconds . " saniye";
+        }
+
+        return empty($result) ? "0 dakika" : implode(" ", $result);
     }
 
     /**
