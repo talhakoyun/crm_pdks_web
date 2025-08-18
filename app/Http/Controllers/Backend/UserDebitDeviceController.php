@@ -70,8 +70,8 @@ class UserDebitDeviceController extends BaseController
             $select = $this->model::with($this->relation);
 
             // Role ve şirket bazlı veri erişimi kontrolü
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $companyId = $request->attributes->get('company_id');
+            $roleData = $this->getRoleDataFromRequest($request);
+            extract($roleData);
 
             // Admin olmayan kullanıcılar için şirket filtrelemesi
             if (!$isAdmin) {

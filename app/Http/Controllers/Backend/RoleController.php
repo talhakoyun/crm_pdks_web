@@ -35,9 +35,8 @@ class RoleController extends BaseController
     {
         if ($request->has('datatable')) {
             // Yetki kontrolü
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $isCompanyOwner = $request->attributes->get('is_company_owner', false);
+            $roleData = $this->getRoleDataFromRequest($request);
+            extract($roleData);
             $loggedInRoleId = $request->attributes->get('role_id', 0);
 
             // Role tablosu için şirket bazlı filtreleme yapmıyoruz

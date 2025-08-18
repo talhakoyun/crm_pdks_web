@@ -39,15 +39,8 @@ class UserController extends BaseController
 
         // Middleware kullanarak rol bazlı veriler yükleyelim
         $this->middleware(function ($request, $next) {
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-            $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-            $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-            $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
-            $companyId = $request->attributes->get('company_id');
-            $branchId = $request->attributes->get('branch_id');
+            $roleData = $this->getRoleDataFromRequest($request);
+            extract($roleData);
             $departmentId = $request->attributes->get('department_id');
 
             // Rol bazlı verileri filtrele
@@ -174,8 +167,8 @@ class UserController extends BaseController
         // Form'dan gelen verileri al, branch_ids hariç
         $params = $request->except('branch_ids');
 
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
         $loggedInRoleId = $request->attributes->get('role_id', 0);
 
         // Mevcut kullanıcı güncelleniyor ve is_active değeri 0 (pasif) olarak ayarlanmışsa
@@ -424,16 +417,8 @@ class UserController extends BaseController
     public function list(Request $request)
     {
         // Kullanıcılar için özel listQuery tanımlayalım
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-        $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
-        $companyId = $request->attributes->get('company_id');
-        $branchId = $request->attributes->get('branch_id');
-        $departmentId = $request->attributes->get('department_id');
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
         $loggedInRoleId = $request->attributes->get('role_id', 0);
 
         $this->listQuery = $this->model::query();

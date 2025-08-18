@@ -27,18 +27,18 @@
             // Departman yetkilisi için departman alanını gizle
             var departmentField = document.querySelector('select[name="department_id"]');
             var departmentRow = document.querySelector('.js-department-field');
-            
+
             if (departmentField && departmentRow && isDepartmentManager) {
                 // Departman alanını gizle
                 departmentRow.style.display = 'none';
-                
+
                 // Departman alanını zorunlu olmaktan çıkar
                 departmentField.removeAttribute('required');
                 departmentField.classList.remove('wizard-required', 'js-personel-required');
             } else if (departmentField && departmentRow && isPersonnelRole && !isDepartmentManager) {
                 // Diğer personel rolleri için departman alanını göster
                 departmentRow.style.display = '';
-                
+
                 // Departman alanını zorunlu yap
                 departmentField.setAttribute('required', 'required');
                 departmentField.classList.add('wizard-required', 'js-personel-required');
@@ -55,39 +55,26 @@
     <div class="row gy-3">
         @php
             // Yetki kontrolü
-            $canEditBranch =
-                request()->attributes->get('is_super_admin', false) ||
-                request()->attributes->get('is_admin', false) ||
-                request()->attributes->get('is_company_owner', false) ||
-                request()->attributes->get('is_company_admin', false);
+            $authUser = Auth::user();
+            $authUserRoleId = $authUser->role_id;
 
-            $canEditShift =
-                request()->attributes->get('is_super_admin', false) ||
-                request()->attributes->get('is_admin', false) ||
-                request()->attributes->get('is_company_owner', false) ||
-                request()->attributes->get('is_company_admin', false) ||
-                request()->attributes->get('is_branch_admin', false) ||
-                request()->attributes->get('is_department_admin', false);
+            // Rol bazlı yetki kontrolleri
+            $isSuperAdmin = $authUserRoleId == 1;
+            $isAdmin = $authUserRoleId == 2;
+            $isCompanyOwner = $authUserRoleId == 3;
+            $isCompanyAdmin = $authUserRoleId == 4;
+            $isBranchAdmin = $authUserRoleId == 5;
+            $isDepartmentAdmin = $authUserRoleId == 6;
 
-            $canEditDepartment =
-                request()->attributes->get('is_super_admin', false) ||
-                request()->attributes->get('is_admin', false) ||
-                request()->attributes->get('is_company_owner', false) ||
-                request()->attributes->get('is_company_admin', false) ||
-                request()->attributes->get('is_branch_admin', false);
+            $canEditBranch = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin;
 
-            $canEditPosition =
-                request()->attributes->get('is_super_admin', false) ||
-                request()->attributes->get('is_admin', false) ||
-                request()->attributes->get('is_company_owner', false) ||
-                request()->attributes->get('is_company_admin', false) ||
-                request()->attributes->get('is_branch_admin', false);
+            $canEditShift = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin || $isBranchAdmin || $isDepartmentAdmin;
 
-            $canEditPermits =
-                request()->attributes->get('is_super_admin', false) ||
-                request()->attributes->get('is_admin', false) ||
-                request()->attributes->get('is_company_owner', false) ||
-                request()->attributes->get('is_company_admin', false);
+            $canEditDepartment = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin || $isBranchAdmin;
+
+            $canEditPosition = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin || $isBranchAdmin;
+
+            $canEditPermits = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin;
         @endphp
 
         <div class="row gy-3 js-personel-section">

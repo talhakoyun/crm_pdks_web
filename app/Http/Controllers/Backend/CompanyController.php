@@ -34,7 +34,9 @@ class CompanyController extends BaseController
      */
     public function list(Request $request)
     {
-        if (!$request->attributes->get('is_admin', false)) {
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
+        if (!$isAdmin) {
             return redirect()->route('backend.index')->with('error', 'Bu sayfaya erişim yetkiniz bulunmamaktadır.');
         }
 
@@ -46,7 +48,9 @@ class CompanyController extends BaseController
      */
     public function form(Request $request, $unique = NULL)
     {
-        if (!$request->attributes->get('is_admin', false)) {
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
+        if (!$isAdmin) {
             return redirect()->route('backend.index')->with('error', 'Bu sayfaya erişim yetkiniz bulunmamaktadır.');
         }
 
@@ -58,7 +62,9 @@ class CompanyController extends BaseController
      */
     public function save(Request $request, $unique = NULL)
     {
-        if (!$request->attributes->get('is_admin', false)) {
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
+        if (!$isAdmin) {
             return redirect()->route('backend.index')->with('error', 'Bu işlemi gerçekleştirme yetkiniz bulunmamaktadır.');
         }
 
@@ -86,7 +92,9 @@ class CompanyController extends BaseController
      */
     public function delete(Request $request)
     {
-        if (!$request->attributes->get('is_admin', false)) {
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
+        if (!$isAdmin) {
             return response()->json(['status' => false, 'message' => 'Bu işlemi gerçekleştirme yetkiniz bulunmamaktadır.']);
         }
 

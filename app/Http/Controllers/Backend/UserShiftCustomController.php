@@ -27,16 +27,8 @@ class UserShiftCustomController extends BaseController
 
         // Kullanıcının yetkisine göre görüntülenecek kullanıcıları filtreleyelim
         $this->middleware(function ($request, $next) {
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-            $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-            $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-            $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
-            $companyId = $request->attributes->get('company_id');
-            $branchId = $request->attributes->get('branch_id');
-            $departmentId = $request->attributes->get('department_id');
+            $roleData = $this->getRoleDataFromRequest($request);
+            extract($roleData);
 
             $usersQuery = User::where('role_id', 7)->active()->with('userShifts.shiftDefinition');
 
@@ -69,16 +61,8 @@ class UserShiftCustomController extends BaseController
     {
         if ($request->has('datatable')) {
             // Kullanıcının yetkisine göre filtreleme yapalım
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-            $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-            $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-            $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
-            $companyId = $request->attributes->get('company_id');
-            $branchId = $request->attributes->get('branch_id');
-            $departmentId = $request->attributes->get('department_id');
+            $roleData = $this->getRoleDataFromRequest($request);
+            extract($roleData);
             $loggedInUserId = Auth::id();
 
             $select = $this->model::with(['user', 'shiftDefinition']);
@@ -180,16 +164,8 @@ class UserShiftCustomController extends BaseController
         $errors = [];
 
         // Yetki kontrolleri
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-        $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
-        $companyId = $request->attributes->get('company_id');
-        $branchId = $request->attributes->get('branch_id');
-        $departmentId = $request->attributes->get('department_id');
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
 
         // Tüm kullanıcılar için kontrol et
         foreach ($startDates as $userId => $startDate) {

@@ -58,7 +58,7 @@
               <x-form-error field="phone" />
           </div>
       </div>
-      <div class="col-sm-6">
+      <div class="col-sm-4">
           <label class="form-label">Email<span class="text-danger">*</span></label>
           <div class="position-relative">
               <input type="email" class="form-control wizard-required" placeholder="Email" name="email"
@@ -67,7 +67,7 @@
               <x-form-error field="email" />
           </div>
       </div>
-      <div class="col-sm-6">
+      <div class="col-sm-4">
           <label class="form-label">Şifre<span class="text-danger">{{ $item->id ? '' : '*' }}</span></label>
           <div class="position-relative">
               <input type="password" class="form-control {{ $item->id ? '' : 'wizard-required' }}" placeholder="Şifre"
@@ -76,53 +76,42 @@
               <x-form-error field="password" />
           </div>
       </div>
-      <div class="col-sm-6">
-          <label class="form-label">İşe Başlama Tarihi<span class="text-danger">*</span></label>
+      <div class="col-sm-4">
+          <label class="form-label">Ünvan<span class="text-danger">{{ $item->id ? '' : '*' }}</span></label>
           <div class="position-relative">
-              <input type="date" class="form-control wizard-required" placeholder="İşe Başlama Tarihi"
-                  name="start_work_date" value="{{ old('start_work_date') ?? ($item->start_work_date ?? '') }}"
-                  required>
+              <input type="text" class="form-control {{ $item->id ? '' : 'wizard-required' }}" placeholder="Ünvan"
+                  name="title" {{ $item->id ? '' : 'required' }}>
               <div class="wizard-form-error"></div>
-              <x-form-error field="start_work_date" />
-          </div>
-      </div>
-      <div class="col-sm-6">
-          <label class="form-label">İşten Çıkış Tarihi</label>
-          <div class="position-relative">
-              <input type="date" class="form-control" placeholder="İşten Çıkış Tarihi" name="leave_work_date"
-                  value="{{ old('leave_work_date') ?? ($item->leave_work_date ?? '') }}">
+              <x-form-error field="title" />
           </div>
       </div>
 
       @php
+          $authUser = Auth::user();
+          $authUserRoleId = $authUser->role_id;
+
+          // Rol bazlı yetki kontrolleri
+          $isSuperAdmin = $authUserRoleId == 1;
+          $isAdmin = $authUserRoleId == 2;
+          $isCompanyOwner = $authUserRoleId == 3;
+          $isCompanyAdmin = $authUserRoleId == 4;
+          $isBranchAdmin = $authUserRoleId == 5;
+          $isDepartmentAdmin = $authUserRoleId == 6;
+
           // Rol seçimi kontrolü
-          $canViewRoles =
-              request()->attributes->get('is_super_admin', false) ||
-              request()->attributes->get('is_admin', false) ||
-              request()->attributes->get('is_company_owner', false) ||
-              request()->attributes->get('is_company_admin', false) ||
-              request()->attributes->get('is_branch_admin', false) ||
-              request()->attributes->get('is_department_admin', false);
+          $canViewRoles = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin || $isBranchAdmin || $isDepartmentAdmin;
 
           // Şirket seçimi kontrolü
-          $canSelectCompany =
-              request()->attributes->get('is_super_admin', false) || request()->attributes->get('is_admin', false);
+          $canSelectCompany = $isSuperAdmin || $isAdmin;
 
-          // Şube seçimi kontrolü - auth kullanıcının role_id'sine göre
-$authUserRoleId = request()->attributes->get('role_id');
-$showBranchSelection = in_array($authUserRoleId, [3, 4]); // Role 3 ve 4 için şube seçimi göster
-$authUserBranchId = request()->attributes->get('branch_id'); // Role 5 ve 6 için kullanılacak
+          // Şube seçimi kontrolü - şirket sahibi ve yetkilisi için
+          $showBranchSelection = $isCompanyOwner || $isCompanyAdmin; // Role 3 ve 4 için şube seçimi göster
+          $authUserBranchId = $authUser->branch_id; // Role 5 ve 6 için kullanılacak
 
-// Sonraki sayfa kontrolü - admin ve süper admin dahil tüm yetkili kullanıcılar için
-$showMultiPageForm =
-    request()->attributes->get('is_super_admin', false) ||
-    request()->attributes->get('is_admin', false) ||
-    request()->attributes->get('is_company_owner', false) ||
-    request()->attributes->get('is_company_admin', false) ||
-    request()->attributes->get('is_branch_admin', false) ||
-    request()->attributes->get('is_department_admin', false);
+          // Sonraki sayfa kontrolü - admin ve süper admin dahil tüm yetkili kullanıcılar için
+          $showMultiPageForm = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin || $isBranchAdmin || $isDepartmentAdmin;
 
-// Seçili rol ID'si (personel rolü kontrolü için)
+          // Seçili rol ID'si (personel rolü kontrolü için)
           $selectedRoleId = old('role_id') ?? $item->role_id;
           $isPersonnelRole = in_array($selectedRoleId, [5, 6, 7]);
       @endphp
@@ -167,12 +156,12 @@ $showMultiPageForm =
                               @php
                                   // Şube seçiminde görülebilirlik kontrolü
                                   $canSeeThisBranch = true;
-                                  $companyId = request()->attributes->get('company_id');
+                                  $companyId = $authUser->company_id;
 
                                   // Şirket kontrolü - Kendi şirketine ait şubeleri görebilir
                                   if (
-                                      !request()->attributes->get('is_super_admin', false) &&
-                                      !request()->attributes->get('is_admin', false) &&
+                                      !$isSuperAdmin &&
+                                      !$isAdmin &&
                                       $companyId &&
                                       $branch->company_id != $companyId
                                   ) {
@@ -228,6 +217,23 @@ $showMultiPageForm =
               </div>
               <div class="wizard-form-error"></div>
               <x-form-error field="is_active" />
+          </div>
+      </div>
+      <div class="col-sm-6">
+          <label class="form-label">İşe Başlama Tarihi<span class="text-danger">*</span></label>
+          <div class="position-relative">
+              <input type="date" class="form-control wizard-required" placeholder="İşe Başlama Tarihi"
+                  name="start_work_date" value="{{ old('start_work_date') ?? ($item->start_work_date ?? '') }}"
+                  required>
+              <div class="wizard-form-error"></div>
+              <x-form-error field="start_work_date" />
+          </div>
+      </div>
+      <div class="col-sm-6">
+          <label class="form-label">İşten Çıkış Tarihi</label>
+          <div class="position-relative">
+              <input type="date" class="form-control" placeholder="İşten Çıkış Tarihi" name="leave_work_date"
+                  value="{{ old('leave_work_date') ?? ($item->leave_work_date ?? '') }}">
           </div>
       </div>
 

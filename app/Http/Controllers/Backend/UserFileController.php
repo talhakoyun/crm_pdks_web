@@ -31,16 +31,8 @@ class UserFileController extends BaseController
 
         $this->middleware(function ($request, $next) {
             $user = Auth::user();
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-            $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-            $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-            $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
-            $companyId = $request->attributes->get('company_id');
-            $branchId = $request->attributes->get('branch_id');
-            $departmentId = $request->attributes->get('department_id');
+            $roleData = $this->getRoleDataFromRequest($request);
+            extract($roleData);
 
             // Yetki seviyesine göre kullanıcı filtreleme
             $usersQuery = User::query();
@@ -75,16 +67,8 @@ class UserFileController extends BaseController
     public function list(Request $request)
     {
         // Rol bazlı filtreleme
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-        $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
-        $companyId = $request->attributes->get('company_id');
-        $branchId = $request->attributes->get('branch_id');
-        $departmentId = $request->attributes->get('department_id');
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
         $loggedInUserId = Auth::id();
 
         $this->listQuery = $this->model::query()->with(['user', 'fileType']);
@@ -161,12 +145,8 @@ class UserFileController extends BaseController
     public function form(Request $request, $unique = null)
     {
         // Rol bazlı erişim kontrolü
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-        $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
         $loggedInUserId = Auth::id();
 
         // Dosya düzenleme durumunda yetki kontrolü
@@ -341,12 +321,8 @@ class UserFileController extends BaseController
     public function delete(Request $request)
     {
         // Rol bazlı erişim kontrolü
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-        $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
         $loggedInUserId = Auth::id();
 
         // Silme işlemi için yetki kontrolü

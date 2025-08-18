@@ -29,19 +29,11 @@ class DepartmentController extends BaseController
         );
         $this->middleware(function ($request, $next) {
             $user = Auth::user();
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-            $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-            $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-            $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
-            $companyId = $request->attributes->get('company_id');
-            $branchId = $request->attributes->get('branch_id');
-            $departmentId = $request->attributes->get('department_id');
+            $roleData = $this->getRoleDataFromRequest($request);
+            extract($roleData);
 
             // Yetki seviyesine göre kullanıcı filtreleme
-            $usersQuery = User::where('role_id', 6);
+            $usersQuery = User::whereIn('role_id', [5, 6]);
 
             if (!$isSuperAdmin && !$isAdmin) {
                 // Normal kullanıcılar için company_id filtresi
@@ -95,16 +87,8 @@ class DepartmentController extends BaseController
     public function list(Request $request)
     {
         // Departmanlar için listQuery tanımlayalım
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-        $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
-
-        $companyId = $request->attributes->get('company_id');
-        $branchId = $request->attributes->get('branch_id');
-        $departmentId = $request->attributes->get('department_id');
+        $roleData = $this->getRoleDataFromRequest($request);
+        extract($roleData);
         $loggedInUserId = Auth::id();
 
         $this->listQuery = $this->model::query()->with(['branch', 'company', 'user']);
@@ -142,7 +126,7 @@ class DepartmentController extends BaseController
     public function saveHook(Request $request)
     {
         $params = $request->all();
-        
+
         // Company_id kontrolü - eğer yoksa branch'tan al
         if (!isset($params['company_id']) && isset($params['branch_id'])) {
             $branch = Branch::find($params['branch_id']);
