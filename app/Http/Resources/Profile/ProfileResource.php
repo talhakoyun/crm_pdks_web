@@ -67,6 +67,7 @@ class ProfileResource extends JsonResource
             'gender' => $this->gender == 1 ? 'Erkek' : 'Kadın',
             'role' => $this->role,
             'company' => new CompanyResource($this->company),
+            'title' => $this->title,
             'department' => [
                 'id' => $this->department?->id,
                 'name' => $this->department?->title,

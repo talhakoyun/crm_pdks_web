@@ -155,18 +155,6 @@
             </div>
         </div>
 
-        <!-- Pozisyon -->
-        <div class="col-sm-3">
-            <label class="form-label">Pozisyon <span class="text-danger">*</span></label>
-        </div>
-        <div class="col-sm-9">
-            <div class="position-relative">
-                <input type="text" class="form-control js-personel-required" name="title" value="{{ old('title') ?? ($item->title ?? '') }}">
-                <div class="wizard-form-error"></div>
-                <x-form-error field="title" />
-            </div>
-        </div>
-
         <!-- Kurum Dışı Bildirim -->
         <div class="col-sm-3">
             <label class="form-label">Kurum Dışı Bildirim <span class="text-danger">*</span></label>
