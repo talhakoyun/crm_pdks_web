@@ -34,9 +34,18 @@ class ShiftDefinitionController extends BaseController
      */
     public function list(Request $request)
     {
+        $user = Auth::user();
         // Vardiyaları rol bazlı filtreleme için özel sorgu oluşturalım
-        $roleData = $this->getRoleDataFromRequest($request);
-        extract($roleData);
+        $isAdmin = $user->role_id == 2;
+        $isSuperAdmin = $user->role_id == 1;
+        $isCompanyOwner = $user->role_id == 3;
+        $isCompanyAdmin = $user->role_id == 4;
+        $isBranchAdmin = $user->role_id == 5;
+        $isDepartmentAdmin = $user->role_id == 6;
+
+        $companyId = $user->company_id;
+        $branchId = $user->branch_id;
+        $departmentId = $user->department_id;
         $loggedInUserId = Auth::id();
 
         $this->listQuery = $this->model::query();
@@ -75,6 +84,43 @@ class ShiftDefinitionController extends BaseController
             return $item->branch?->title ?? '-';
         })->editColumn('company_id', function ($item) {
             return $item->company?->name ?? '-';
-        });
+        })->editColumn('start_date', function ($item) {
+            if (!$item->start_date) {
+                return '<span class="badge bg-secondary">Tanımsız</span>';
+            }
+            return '<span class="badge bg-primary">' . date('d.m.Y', strtotime($item->start_date)) . '</span>';
+        })->editColumn('end_date', function ($item) {
+            if (!$item->end_date) {
+                return '<span class="badge bg-success">Süresiz</span>';
+            }
+            return '<span class="badge bg-warning">' . date('d.m.Y', strtotime($item->end_date)) . '</span>';
+        })->addColumn('working_days', function ($item) {
+            $workingDays = $item->getWorkingDays();
+            if (empty($workingDays)) {
+                return '<span class="badge bg-warning">Tanımsız</span>';
+            }
+
+            $dayNames = [
+                'monday' => 'Pzt',
+                'tuesday' => 'Sal',
+                'wednesday' => 'Çar',
+                'thursday' => 'Per',
+                'friday' => 'Cum',
+                'saturday' => 'Cmt',
+                'sunday' => 'Paz'
+            ];
+
+            $displayDays = array_map(function($day) use ($dayNames) {
+                return $dayNames[$day] ?? $day;
+            }, $workingDays);
+
+            return '<span class="badge bg-success">' . implode(', ', $displayDays) . '</span>';
+        })->addColumn('weekly_hours', function ($item) {
+            $hours = $item->getWeeklyWorkingHours();
+            if ($hours == 0) {
+                return '<span class="badge bg-warning">0 saat</span>';
+            }
+            return '<span class="badge bg-info">' . number_format($hours, 1) . ' saat</span>';
+        })->rawColumns(['start_date', 'end_date', 'working_days', 'weekly_hours']);
     }
 }

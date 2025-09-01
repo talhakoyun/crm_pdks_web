@@ -10,6 +10,7 @@ use App\Http\Controllers\Backend\DebitDeviceController;
 use App\Http\Controllers\Backend\DepartmentController;
 use App\Http\Controllers\Backend\FileTypeController;
 use App\Http\Controllers\Backend\HolidayController;
+use App\Http\Controllers\Backend\HourlyLeaveController;
 use App\Http\Controllers\Backend\OfficialHolidayController;
 use App\Http\Controllers\Backend\ShiftDefinitionController;
 use App\Http\Controllers\Backend\MenuController;
@@ -19,6 +20,8 @@ use App\Http\Controllers\Backend\UserDebitDeviceController;
 use App\Http\Controllers\Backend\UserFileController;
 use App\Http\Controllers\Backend\AnnouncementController;
 use App\Http\Controllers\Backend\EventController;
+use App\Http\Controllers\Backend\ShiftAssignmentController;
+use App\Http\Controllers\Backend\WeeklyHolidayController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -87,6 +90,28 @@ Route::group(['prefix' => '', 'middleware' => ['auth:user', 'company.access']], 
                 Route::delete('delete', 'delete')->name('backend.shift_definition_delete')->desc('Vardiya Tanımlamaları');
             });
         });
+        Route::prefix('shift/assignment')->group(function () {
+            Route::controller(ShiftAssignmentController::class)->group(function () {
+                Route::any('/', 'list')->name('backend.shift_assignment_list')->desc('Vardiya Atamaları');
+                Route::get('form/{unique?}', 'form')->name('backend.shift_assignment_form')->desc('Vardiya Atamaları');
+                Route::post('form/{unique?}', 'save')->name('backend.shift_assignment_save')->desc('Vardiya Atamaları');
+                Route::get('get-users', 'getUsers')->name('backend.shift_assignment_get_users')->desc('Vardiya Atamaları');
+                Route::post('assign', 'assignShift')->name('backend.shift_assignment_assign')->desc('Vardiya Atamaları');
+                Route::put('update/{id}', 'updateAssignment')->name('backend.shift_assignment_update')->desc('Vardiya Atamaları');
+                Route::delete('delete', 'delete')->name('backend.shift_assignment_delete')->desc('Vardiya Atamaları');
+                Route::delete('remove/{id}', 'removeAssignment')->name('backend.shift_assignment_remove')->desc('Vardiya Atamaları');
+            });
+        });
+        Route::prefix('weekly/holiday')->group(function () {
+            Route::controller(WeeklyHolidayController::class)->group(function () {
+                Route::any('/', 'list')->name('backend.weekly_holiday_list')->desc('Haftalık Tatil Günleri');
+                Route::get('form/{unique?}', 'form')->name('backend.weekly_holiday_form')->desc('Haftalık Tatil Günleri');
+                Route::post('form/{unique?}', 'save')->name('backend.weekly_holiday_save')->desc('Haftalık Tatil Günleri');
+                Route::get('get-users', 'getUsers')->name('backend.weekly_holiday_get_users')->desc('Haftalık Tatil Günleri');
+                Route::post('assign', 'assignHolidays')->name('backend.weekly_holiday_assign')->desc('Haftalık Tatil Günleri');
+                Route::delete('delete', 'delete')->name('backend.weekly_holiday_delete')->desc('Haftalık Tatil Günleri');
+            });
+        });
         Route::prefix('menu')->group(function () {
             Route::controller(MenuController::class)->group(function () {
                 Route::any('/', 'list')->name('backend.menu_list')->desc('Menüler');
@@ -139,6 +164,15 @@ Route::group(['prefix' => '', 'middleware' => ['auth:user', 'company.access']], 
                 Route::post('form/{unique?}', 'save')->name('backend.holiday_save')->desc('İzin Talepleri');
                 Route::delete('delete', 'delete')->name('backend.holiday_delete')->desc('İzin Talepleri');
                 Route::post('change-status', 'changeStatus')->name('backend.holiday_change_status')->desc('İzin Talepleri');
+            });
+        });
+        Route::prefix('hourly-leave')->group(function () {
+            Route::controller(HourlyLeaveController::class)->group(function () {
+                Route::any('/', 'list')->name('backend.hourly_leave_list')->desc('Saatlik İzin Talepleri');
+                Route::get('form/{unique?}', 'form')->name('backend.hourly_leave_form')->desc('Saatlik İzin Talepleri');
+                Route::post('form/{unique?}', 'save')->name('backend.hourly_leave_save')->desc('Saatlik İzin Talepleri');
+                Route::delete('delete', 'delete')->name('backend.hourly_leave_delete')->desc('Saatlik İzin Talepleri');
+                Route::post('change-status', 'changeStatus')->name('backend.hourly_leave_change_status')->desc('Saatlik İzin Talepleri');
             });
         });
 

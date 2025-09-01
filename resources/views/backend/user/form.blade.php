@@ -9,7 +9,7 @@
 @php
     $title = $container->title . (is_null($item->id) ? ' Ekle' : ' Düzenle');
     $subTitle = $container->title . (is_null($item->id) ? ' Ekle' : ' Düzenle');
-    $isSuperAdmin = Auth::user()->role_id <= 2; // Super Admin (1) veya Admin (2)
+    $isSuperAdmin = request()->attributes->get('is_admin', false);
     $script = ' <script>
         // =============================== Wizard Step Js Start ================================
         $(document).ready(function() {

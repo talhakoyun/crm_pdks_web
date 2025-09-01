@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GeneralController;
 use App\Http\Controllers\Api\HolidayController;
+use App\Http\Controllers\Api\HourlyLeaveController;
 use App\Http\Controllers\Api\ShiftFollowController;
 use App\Http\Controllers\Api\ShiftFollowReportController;
 use App\Http\Controllers\Api\UserController;
@@ -58,7 +59,13 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::prefix('holidays')->group(function () {
         Route::get('list', [HolidayController::class, 'list']);
         Route::post('store', [HolidayController::class, 'store']);
-        Route::get('types', [HolidayController::class, 'types']);
+    });
+
+    // Saatlik İzin Yönetimi
+    Route::prefix('hourly-leaves')->group(function () {
+        Route::get('list', [HourlyLeaveController::class, 'list']);
+        Route::post('store', [HourlyLeaveController::class, 'store']);
+        Route::get('types', [HourlyLeaveController::class, 'types']);
     });
 
     // Kullanıcı bilgileri

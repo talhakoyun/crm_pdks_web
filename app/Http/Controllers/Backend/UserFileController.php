@@ -31,8 +31,16 @@ class UserFileController extends BaseController
 
         $this->middleware(function ($request, $next) {
             $user = Auth::user();
-            $roleData = $this->getRoleDataFromRequest($request);
-            extract($roleData);
+            $isAdmin = $user->role_id == 2;
+            $isSuperAdmin = $user->role_id == 1;
+            $isCompanyOwner = $user->role_id == 3;
+            $isCompanyAdmin = $user->role_id == 4;
+            $isBranchAdmin = $user->role_id == 5;
+            $isDepartmentAdmin = $user->role_id == 6;
+
+            $companyId = $user->company_id;
+            $branchId = $user->branch_id;
+            $departmentId = $user->department_id;
 
             // Yetki seviyesine göre kullanıcı filtreleme
             $usersQuery = User::query();
@@ -67,8 +75,17 @@ class UserFileController extends BaseController
     public function list(Request $request)
     {
         // Rol bazlı filtreleme
-        $roleData = $this->getRoleDataFromRequest($request);
-        extract($roleData);
+        $user = Auth::user();
+        $isAdmin = $user->role_id == 2;
+        $isSuperAdmin = $user->role_id == 1;
+        $isCompanyOwner = $user->role_id == 3;
+        $isCompanyAdmin = $user->role_id == 4;
+        $isBranchAdmin = $user->role_id == 5;
+        $isDepartmentAdmin = $user->role_id == 6;
+
+        $companyId = $user->company_id;
+        $branchId = $user->branch_id;
+        $departmentId = $user->department_id;
         $loggedInUserId = Auth::id();
 
         $this->listQuery = $this->model::query()->with(['user', 'fileType']);
@@ -145,8 +162,13 @@ class UserFileController extends BaseController
     public function form(Request $request, $unique = null)
     {
         // Rol bazlı erişim kontrolü
-        $roleData = $this->getRoleDataFromRequest($request);
-        extract($roleData);
+        $user = Auth::user();
+        $isAdmin = $user->role_id == 2;
+        $isSuperAdmin = $user->role_id == 1;
+        $isCompanyOwner = $user->role_id == 3;
+        $isCompanyAdmin = $user->role_id == 4;
+        $isBranchAdmin = $user->role_id == 5;
+        $isDepartmentAdmin = $user->role_id == 6;
         $loggedInUserId = Auth::id();
 
         // Dosya düzenleme durumunda yetki kontrolü
@@ -168,7 +190,7 @@ class UserFileController extends BaseController
 
                 // Departman yöneticisi sadece kendi departmanındaki personel dosyalarını düzenleyebilir
                 if ($isDepartmentAdmin) {
-                    $departmentId = $request->attributes->get('department_id');
+                    $departmentId = $user->department_id;
                     if ($userFile->user->department_id != $departmentId) {
                         return redirect()->route('backend.user_file_list')->with('error', 'Bu dosyayı düzenleme yetkiniz bulunmamaktadır.');
                     }
@@ -176,7 +198,7 @@ class UserFileController extends BaseController
 
                 // Şube yöneticisi sadece kendi şubesindeki personel dosyalarını düzenleyebilir
                 if ($isBranchAdmin) {
-                    $branchId = $request->attributes->get('branch_id');
+                    $branchId = $user->branch_id;
                     if ($userFile->user->branch_id != $branchId) {
                         return redirect()->route('backend.user_file_list')->with('error', 'Bu dosyayı düzenleme yetkiniz bulunmamaktadır.');
                     }
@@ -184,7 +206,7 @@ class UserFileController extends BaseController
 
                 // Şirket yöneticisi ve sahibi sadece kendi şirketindeki personel dosyalarını düzenleyebilir
                 if ($isCompanyOwner || $isCompanyAdmin) {
-                    $companyId = $request->attributes->get('company_id');
+                    $companyId = $user->company_id;
                     if ($userFile->user->company_id != $companyId) {
                         return redirect()->route('backend.user_file_list')->with('error', 'Bu dosyayı düzenleme yetkiniz bulunmamaktadır.');
                     }
@@ -321,8 +343,13 @@ class UserFileController extends BaseController
     public function delete(Request $request)
     {
         // Rol bazlı erişim kontrolü
-        $roleData = $this->getRoleDataFromRequest($request);
-        extract($roleData);
+        $user = Auth::user();
+        $isAdmin = $user->role_id == 2;
+        $isSuperAdmin = $user->role_id == 1;
+        $isCompanyOwner = $user->role_id == 3;
+        $isCompanyAdmin = $user->role_id == 4;
+        $isBranchAdmin = $user->role_id == 5;
+        $isDepartmentAdmin = $user->role_id == 6;
         $loggedInUserId = Auth::id();
 
         // Silme işlemi için yetki kontrolü
@@ -340,7 +367,7 @@ class UserFileController extends BaseController
 
                 // Departman yöneticisi sadece kendi departmanındaki personel dosyalarını silebilir
                 if ($isDepartmentAdmin) {
-                    $departmentId = $request->attributes->get('department_id');
+                    $departmentId = $user->department_id;
                     if ($userFile->user->department_id != $departmentId) {
                         return response()->json(['status' => false, 'message' => 'Bu dosyayı silme yetkiniz bulunmamaktadır.']);
                     }
@@ -348,7 +375,7 @@ class UserFileController extends BaseController
 
                 // Şube yöneticisi sadece kendi şubesindeki personel dosyalarını silebilir
                 if ($isBranchAdmin) {
-                    $branchId = $request->attributes->get('branch_id');
+                    $branchId = $user->branch_id;
                     if ($userFile->user->branch_id != $branchId) {
                         return response()->json(['status' => false, 'message' => 'Bu dosyayı silme yetkiniz bulunmamaktadır.']);
                     }
@@ -356,7 +383,7 @@ class UserFileController extends BaseController
 
                 // Şirket yöneticisi ve sahibi sadece kendi şirketindeki personel dosyalarını silebilir
                 if ($isCompanyOwner || $isCompanyAdmin) {
-                    $companyId = $request->attributes->get('company_id');
+                    $companyId = $user->company_id;
                     if ($userFile->user->company_id != $companyId) {
                         return response()->json(['status' => false, 'message' => 'Bu dosyayı silme yetkiniz bulunmamaktadır.']);
                     }

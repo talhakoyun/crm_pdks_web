@@ -19,7 +19,7 @@ class UserShiftCustom extends BaseModel
 
     public function shiftDefinition()
     {
-        return $this->belongsTo(ShiftDefinition::class);
+        return $this->belongsTo(\App\Models\ShiftDefinition::class);
     }
 
     public function scopeActive($query)

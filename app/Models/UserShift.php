@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class UserShift extends Model
+class UserShift extends BaseModel
 {
+    use SoftDeletes;
+
     protected $table = 'user_shifts';
     protected $guarded = [];
 
@@ -16,6 +19,11 @@ class UserShift extends Model
 
     public function shiftDefinition()
     {
-        return $this->belongsTo(ShiftDefinition::class);
+        return $this->belongsTo(\App\Models\ShiftDefinition::class);
+    }
+
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', 1);
     }
 }

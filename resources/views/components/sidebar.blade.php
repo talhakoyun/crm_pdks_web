@@ -53,7 +53,7 @@
                 </li>
             @endif
 
-            @if (Helpers::hasPermission(['shift_definition', 'user_shift_custom', 'shift_follow']))
+            @if (Helpers::hasPermission(['shift_definition', 'shift_assignment', 'user_shift_custom', 'shift_follow', 'weekly_holiday']))
                 <li class="dropdown">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="fluent:shifts-30-minutes-24-regular" class="menu-icon"></iconify-icon>
@@ -68,10 +68,26 @@
                                 </a>
                             </li>
                         @endif
+                        @if (Helpers::hasPermission(['shift_assignment']))
+                            <li>
+                                <a href="{{ route('backend.shift_assignment_list') }}">
+                                    <i class="ri-circle-fill circle-icon text-success-main w-auto"></i>
+                                    Vardiya Atamaları
+                                </a>
+                            </li>
+                        @endif
+                        @if (Helpers::hasPermission(['weekly_holiday']))
+                            <li>
+                                <a href="{{ route('backend.weekly_holiday_list') }}">
+                                    <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i>
+                                    Haftalık Tatil Günleri
+                                </a>
+                            </li>
+                        @endif
                         @if (Helpers::hasPermission(['user_shift_custom']))
                             <li>
                                 <a href="{{ route('backend.user_shift_custom_list') }}">
-                                    <i class="ri-circle-fill circle-icon text-warning-main w-auto"></i>
+                                    <i class="ri-circle-fill circle-icon text-secondary w-auto"></i>
                                     Özel Vardiya Tanımlamaları
                                 </a>
                             </li>
@@ -88,7 +104,7 @@
                 </li>
             @endif
 
-            @if (Helpers::hasPermission(['holiday', 'official_holiday']))
+            @if (Helpers::hasPermission(['holiday', 'official_holiday', 'hourly_leave']))
                 <li class="dropdown">
                     <a href="javascript:void(0)">
                         <iconify-icon icon="fluent:calendar-20-regular" class="menu-icon"></iconify-icon>
@@ -100,6 +116,14 @@
                                 <a href="{{ route('backend.holiday_list') }}">
                                     <i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i>
                                     İzin Talepleri
+                                </a>
+                            </li>
+                        @endif
+                        @if (Helpers::hasPermission(['hourly_leave']))
+                            <li>
+                                <a href="{{ route('backend.hourly_leave_list') }}">
+                                    <i class="ri-circle-fill circle-icon text-info-main w-auto"></i>
+                                    Saatlik İzin Talepleri
                                 </a>
                             </li>
                         @endif
@@ -307,51 +331,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
-            console.log('Original URL:', currentPath);
-            console.log('Path parts:', pathParts);
-            console.log('Final module name:', moduleName);
+
 
                                     // Sidebar'daki tüm linkleri kontrol et
             const allLinks = document.querySelectorAll('.sidebar-submenu a');
-            console.log('Checking links for module:', moduleName);
 
             for (let link of allLinks) {
                 const linkHref = link.getAttribute('href');
                 if (linkHref) {
-                    console.log('Checking link:', linkHref, 'against module:', moduleName);
 
                     // Tam URL eşleştirmesi (en hassas)
                     if (linkHref === currentPath) {
-                        console.log('Exact URL match found!', link.textContent.trim());
                         activeLink = link;
                         break;
                     }
 
                     // Özel modül eşleştirmeleri
                     if (moduleName === 'user_file' && (linkHref.includes('/admin/user/file') || linkHref.includes('/admin/user_file'))) {
-                        console.log('User file match found!', link.textContent.trim());
                         activeLink = link;
                         break;
                     }
                     else if (moduleName === 'user_shift_custom' && (linkHref.includes('/admin/user/shift/custom') || linkHref.includes('/admin/user_shift_custom'))) {
-                        console.log('User shift custom match found!', link.textContent.trim());
                         activeLink = link;
                         break;
                     }
                     else if (moduleName === 'user_debit_device' && (linkHref.includes('/admin/user/debit/device') || linkHref.includes('/admin/user_debit_device'))) {
-                        console.log('User debit device match found!', link.textContent.trim());
                         activeLink = link;
                         break;
                     }
                     // Normal kullanıcı sayfaları için hassas eşleştirme
                     else if (moduleName === 'user' && linkHref.includes('/admin/user') && !linkHref.includes('/admin/user/')) {
-                        console.log('User exact match found!', link.textContent.trim());
                         activeLink = link;
                         break;
                     }
                     // Normal tam eşleşme kontrolü (user hariç)
                     else if (moduleName !== 'user' && linkHref.includes(`/admin/${moduleName}`)) {
-                        console.log('Normal match found!', link.textContent.trim());
                         activeLink = link;
                         break;
                     }

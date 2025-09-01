@@ -47,8 +47,10 @@ class AuthController extends Controller
 
         $tokenData = [
             'access_token' => $result['token'],
+            'refresh_token' => $result['token'],
             'token_type' => 'bearer',
-            'expires_in' => config('jwt.ttl') * 60
+            'expires_in' => config('jwt.ttl') * 60,
+            'refresh_expires_in' => config('jwt.refresh_ttl') * 60
         ];
         $user = User::where('email', $request->email)->first();
         $userResource = new ProfileResource($user, $tokenData);

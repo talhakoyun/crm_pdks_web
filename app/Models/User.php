@@ -158,9 +158,24 @@ class User extends Authenticatable implements JWTSubject
         return $this->hasOne(UserShift::class);
     }
 
+    public function userShift()
+    {
+        return $this->hasOne(UserShift::class)->where('is_active', 1);
+    }
+
     public function userPermits()
     {
         return $this->hasOne(UserPermit::class);
+    }
+
+    public function weeklyHoliday()
+    {
+        return $this->hasOne(UserWeeklyHoliday::class)->where('is_active', 1);
+    }
+
+    public function weeklyHolidays()
+    {
+        return $this->hasMany(UserWeeklyHoliday::class);
     }
 
     /**

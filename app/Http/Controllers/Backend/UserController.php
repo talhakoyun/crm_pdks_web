@@ -7,7 +7,7 @@ use App\Http\Requests\Backend\UserRequest;
 use App\Models\Branch;
 use App\Models\Department;
 use App\Models\Role;
-use App\Models\ShiftDefinition;
+
 use App\Models\User;
 use App\Models\UserBranches;
 use App\Models\UserDebitDevice;
@@ -39,9 +39,17 @@ class UserController extends BaseController
 
         // Middleware kullanarak rol bazlı veriler yükleyelim
         $this->middleware(function ($request, $next) {
-            $roleData = $this->getRoleDataFromRequest($request);
-            extract($roleData);
-            $departmentId = $request->attributes->get('department_id');
+            $user = Auth::user();
+            $isAdmin = $user->role_id == 2;
+            $isSuperAdmin = $user->role_id == 1;
+            $isCompanyOwner = $user->role_id == 3;
+            $isCompanyAdmin = $user->role_id == 4;
+            $isBranchAdmin = $user->role_id == 5;
+            $isDepartmentAdmin = $user->role_id == 6;
+
+            $companyId = $user->company_id;
+            $branchId = $user->branch_id;
+            $departmentId = $user->department_id;
 
             // Rol bazlı verileri filtrele
             $rolesQuery = Role::query();
@@ -96,12 +104,7 @@ class UserController extends BaseController
             }
             view()->share('departments', $departmentsQuery->get());
 
-            // Vardiyalar için erişim kısıtlaması (şirket bazlı filtreleme)
-            $shiftsQuery = ShiftDefinition::active();
-            if (!$isSuperAdmin && !$isAdmin && $companyId) {
-                $shiftsQuery->where('company_id', $companyId);
-            }
-            view()->share('shiftDefinitions', $shiftsQuery->get());
+
 
             // Alanlar (Zones) için erişim kısıtlaması
             $zonesQuery = Zone::query();
@@ -128,11 +131,7 @@ class UserController extends BaseController
         // Kullanıcıya ait şubeler - many-to-many ilişkisini kullan
         // Bu sayede form'da $item->branches->pluck('id')->toArray() kullanabiliriz
 
-        // Kullanıcıya ait vardiya bilgileri
-        $userShift = \App\Models\UserShift::where('user_id', $item->id)->first();
-        if ($userShift) {
-            $item->shift_definition_id = $userShift->shift_definition_id;
-        }
+
 
         // Kullanıcıya ait izin bilgileri
         $userPermit = \App\Models\UserPermit::where('user_id', $item->id)->first();
@@ -167,9 +166,10 @@ class UserController extends BaseController
         // Form'dan gelen verileri al, branch_ids hariç
         $params = $request->except('branch_ids');
 
-        $roleData = $this->getRoleDataFromRequest($request);
-        extract($roleData);
-        $loggedInRoleId = $request->attributes->get('role_id', 0);
+        $user = Auth::user();
+        $isAdmin = $user->role_id == 2;
+        $isCompanyAdmin = $user->role_id == 4;
+        $loggedInRoleId = $user->role_id;
 
         // Mevcut kullanıcı güncelleniyor ve is_active değeri 0 (pasif) olarak ayarlanmışsa
         if ($request->route('unique') !== null && isset($params['is_active']) && $params['is_active'] == 0) {
@@ -191,14 +191,14 @@ class UserController extends BaseController
         // Company_id kontrolü
         if (!$isAdmin) {
             // Süper admin değilse, kendi şirket ID'sini kullan
-            $params['company_id'] = $request->attributes->get('company_id');
+            $params['company_id'] = $user->company_id;
         }
 
         // Branch_id kontrolü - auth kullanıcının role_id'sine göre
         $authUserRoleId = Auth::user()->role_id;
         if (in_array($authUserRoleId, [5, 6])) {
             // Role 5 ve 6 için auth kullanıcının şubesini ata
-            $params['branch_id'] = $request->attributes->get('branch_id');
+            $params['branch_id'] = $user->branch_id;
         } elseif (in_array($authUserRoleId, [3, 4])) {
             // Role 3 ve 4 için form'dan gelen branch_id'yi kullan
             if ($request->has('branch_id')) {
@@ -237,8 +237,7 @@ class UserController extends BaseController
             }
         }
 
-        // İzin ve vardiya bilgilerini User tablosuna kaydetmemek için filtreleme
-        unset($params['shift_definition_id']);
+        // İzin bilgilerini User tablosuna kaydetmemek için filtreleme
         unset($params['allow_outside']);
 
         // Departman yetkilisi (role_id = 6) için department_id'yi null yap
@@ -276,18 +275,7 @@ class UserController extends BaseController
 
 
 
-            // Vardiya bilgilerinin kaydedilmesi
-            if ($request->has('shift_definition_id')) {
-                // Önce mevcut vardiya kaydını sil
-                \App\Models\UserShift::where('user_id', $obj->id)->delete();
 
-                // Yeni vardiya kaydını ekle
-                \App\Models\UserShift::create([
-                    'user_id' => $obj->id,
-                    'shift_definition_id' => $request->shift_definition_id,
-                    'is_active' => 1,
-                ]);
-            }
 
             // Kullanıcı izin bilgilerinin kaydedilmesi
             if ($request->has('allow_outside')) {
@@ -305,7 +293,6 @@ class UserController extends BaseController
             // Personel rolü değilse, mevcut harici tablo kayıtlarını temizle
             UserBranches::where('user_id', $obj->id)->delete();
             UserZones::where('user_id', $obj->id)->delete();
-            \App\Models\UserShift::where('user_id', $obj->id)->delete();
             \App\Models\UserPermit::where('user_id', $obj->id)->delete();
         }
 
@@ -417,9 +404,18 @@ class UserController extends BaseController
     public function list(Request $request)
     {
         // Kullanıcılar için özel listQuery tanımlayalım
-        $roleData = $this->getRoleDataFromRequest($request);
-        extract($roleData);
-        $loggedInRoleId = $request->attributes->get('role_id', 0);
+        $user = Auth::user();
+        $isAdmin = $user->role_id == 2;
+        $isSuperAdmin = $user->role_id == 1;
+        $isCompanyOwner = $user->role_id == 3;
+        $isCompanyAdmin = $user->role_id == 4;
+        $isBranchAdmin = $user->role_id == 5;
+        $isDepartmentAdmin = $user->role_id == 6;
+
+        $companyId = $user->company_id;
+        $branchId = $user->branch_id;
+        $departmentId = $user->department_id;
+        $loggedInRoleId = $user->role_id;
 
         $this->listQuery = $this->model::query();
 

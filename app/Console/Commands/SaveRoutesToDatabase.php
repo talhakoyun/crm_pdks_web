@@ -70,7 +70,10 @@ class SaveRoutesToDatabase extends Command
             'file_type' => 'Dosya Tipleri',
             'user_file' => 'Personel Dosyaları',
             'announcements' => 'Duyurular',
-            'event' => 'Etkinlikler'
+            'event' => 'Etkinlikler',
+            'shift_assignment' => 'Vardiya Atamaları',
+            'hourly_leave' => 'Saatlik İzinler',
+            'weekly_holiday' => 'Haftalık Tatil Günleri'
         ];
 
         // Tam eşleşmeleri önce deneyelim
@@ -146,7 +149,11 @@ class SaveRoutesToDatabase extends Command
             'participants' => 'Katılımcıları Getir',
             'participant_status' => 'Katılımcı Durumu Güncelle',
             'participant_bulk_status' => 'Toplu Katılımcı Durumu Güncelle',
-            'user_debit_device_return' => 'Zimmet Teslim Alma'
+            'user_debit_device_return' => 'Zimmet Teslim Alma',
+            'assign' => 'Atama',
+            'update' => 'Atama Güncelle',
+            'remove' => 'Atama Kaldır',
+            'weekly_holiday' => 'Haftalık Tatil Günleri',
         ];
 
         foreach ($patterns as $key => $desc) {

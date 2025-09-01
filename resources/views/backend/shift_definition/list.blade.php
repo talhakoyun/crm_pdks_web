@@ -24,8 +24,10 @@
                     <thead>
                         <tr>
                             <th scope="col">Vardiya Adı</th>
-                            <th scope="col">Başlangıç Saati</th>
-                            <th scope="col">Bitiş Saati</th>
+                            <th scope="col">Başlangıç Tarihi</th>
+                            <th scope="col">Bitiş Tarihi</th>
+                            <th scope="col">Çalışma Günleri</th>
+                            <th scope="col">Haftalık Saat</th>
                             <th scope="col" class="text-center">Durum</th>
                             <th scope="col" class="text-center">İşlemler</th>
                         </tr>
@@ -63,14 +65,26 @@
                         className: 'text-center'
                     },
                     {
-                        data: 'start_time',
-                        name: 'start_time',
+                        data: 'start_date',
+                        name: 'start_date',
                         className: 'text-center'
                     },
                     {
-                        data: 'end_time',
-                        name: 'end_time',
+                        data: 'end_date',
+                        name: 'end_date',
                         className: 'text-center'
+                    },
+                    {
+                        data: 'working_days',
+                        name: 'working_days',
+                        className: 'text-center',
+                        orderable: false
+                    },
+                    {
+                        data: 'weekly_hours',
+                        name: 'weekly_hours',
+                        className: 'text-center',
+                        orderable: false
                     },
                     {
                         data: 'is_active',

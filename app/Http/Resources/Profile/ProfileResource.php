@@ -67,7 +67,6 @@ class ProfileResource extends JsonResource
             'gender' => $this->gender == 1 ? 'Erkek' : 'Kadın',
             'role' => $this->role,
             'company' => new CompanyResource($this->company),
-            'title' => $this->title,
             'department' => [
                 'id' => $this->department?->id,
                 'name' => $this->department?->title,
@@ -87,9 +86,16 @@ class ProfileResource extends JsonResource
             'created_at' => $this->created_at,
         ];
 
-        if ($this->tokenData !== null) {
+                if ($this->tokenData !== null) {
             // Token alanlarını en üst seviyeye taşı
-            $data = array_merge($data, $this->tokenData);
+            $tokenInfo = $this->tokenData;
+
+            // Eğer refresh_expires_in bilgisi yoksa, refresh_ttl'den hesapla
+            if (!isset($tokenInfo['refresh_expires_in'])) {
+                $tokenInfo['refresh_expires_in'] = config('jwt.refresh_ttl') * 60;
+            }
+
+            $data = array_merge($data, $tokenInfo);
         }
 
         return $data;

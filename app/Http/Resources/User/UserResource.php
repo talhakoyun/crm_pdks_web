@@ -32,7 +32,6 @@ class UserResource extends JsonResource
             'phone' => $this->phone,
             'role' => $this->role,
             'company' => new CompanyResource($this->company),
-            'title' => $this->title,
             'department' => [
                 'id' => $this->department?->id,
                 'name' => $this->department?->title,

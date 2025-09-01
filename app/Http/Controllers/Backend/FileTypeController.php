@@ -190,8 +190,9 @@ class FileTypeController extends BaseController
 
     public function delete(Request $request)
     {
-        $roleData = $this->getRoleDataFromRequest($request);
-        extract($roleData);
+        $user = Auth::user();
+        $isAdmin = $user->role_id == 2;
+        $isSuperAdmin = $user->role_id == 1;
 
         if (!$isAdmin && !$isSuperAdmin) {
             return response()->json(['status' => false, 'message' => 'Bu işlemi gerçekleştirme yetkiniz bulunmamaktadır.']);

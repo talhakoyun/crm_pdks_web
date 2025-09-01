@@ -171,10 +171,10 @@ class ShiftFollowController extends BaseController
         $params = $request->all();
 
         // Company_id kontrolü
-        $roleData = $this->getRoleDataFromRequest($request);
-        extract($roleData);
+        $user = Auth::user();
+        $isAdmin = $user->role_id == 2;
         if (!$isAdmin) {
-            $params['company_id'] = $companyId;
+            $params['company_id'] = $user->company_id;
         }
 
         // Created_by alanını ekle

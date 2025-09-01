@@ -55,26 +55,39 @@
     <div class="row gy-3">
         @php
             // Yetki kontrolü
-            $authUser = Auth::user();
-            $authUserRoleId = $authUser->role_id;
+            $canEditBranch =
+                request()->attributes->get('is_super_admin', false) ||
+                request()->attributes->get('is_admin', false) ||
+                request()->attributes->get('is_company_owner', false) ||
+                request()->attributes->get('is_company_admin', false);
 
-            // Rol bazlı yetki kontrolleri
-            $isSuperAdmin = $authUserRoleId == 1;
-            $isAdmin = $authUserRoleId == 2;
-            $isCompanyOwner = $authUserRoleId == 3;
-            $isCompanyAdmin = $authUserRoleId == 4;
-            $isBranchAdmin = $authUserRoleId == 5;
-            $isDepartmentAdmin = $authUserRoleId == 6;
+            $canEditShift =
+                request()->attributes->get('is_super_admin', false) ||
+                request()->attributes->get('is_admin', false) ||
+                request()->attributes->get('is_company_owner', false) ||
+                request()->attributes->get('is_company_admin', false) ||
+                request()->attributes->get('is_branch_admin', false) ||
+                request()->attributes->get('is_department_admin', false);
 
-            $canEditBranch = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin;
+            $canEditDepartment =
+                request()->attributes->get('is_super_admin', false) ||
+                request()->attributes->get('is_admin', false) ||
+                request()->attributes->get('is_company_owner', false) ||
+                request()->attributes->get('is_company_admin', false) ||
+                request()->attributes->get('is_branch_admin', false);
 
-            $canEditShift = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin || $isBranchAdmin || $isDepartmentAdmin;
+            $canEditPosition =
+                request()->attributes->get('is_super_admin', false) ||
+                request()->attributes->get('is_admin', false) ||
+                request()->attributes->get('is_company_owner', false) ||
+                request()->attributes->get('is_company_admin', false) ||
+                request()->attributes->get('is_branch_admin', false);
 
-            $canEditDepartment = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin || $isBranchAdmin;
-
-            $canEditPosition = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin || $isBranchAdmin;
-
-            $canEditPermits = $isSuperAdmin || $isAdmin || $isCompanyOwner || $isCompanyAdmin;
+            $canEditPermits =
+                request()->attributes->get('is_super_admin', false) ||
+                request()->attributes->get('is_admin', false) ||
+                request()->attributes->get('is_company_owner', false) ||
+                request()->attributes->get('is_company_admin', false);
         @endphp
 
         <div class="row gy-3 js-personel-section">
@@ -131,27 +144,17 @@
             </div>
         </div>
 
-        <!-- Vardiya -->
+
+
+        <!-- Pozisyon -->
         <div class="col-sm-3">
-            <label class="form-label">Vardiya <span class="text-danger">*</span></label>
+            <label class="form-label">Pozisyon <span class="text-danger">*</span></label>
         </div>
         <div class="col-sm-9">
             <div class="position-relative">
-                <div class="icon-field">
-                    <span class="icon">
-                        <iconify-icon icon="carbon:time"></iconify-icon>
-                    </span>
-                    <select class="form-select select2 js-personel-required" name="shift_definition_id">
-                        <option value="">Lütfen vardiya seçiniz</option>
-                        @foreach ($shiftDefinitions as $shiftDefinition)
-                            <option value="{{ $shiftDefinition->id }}" {{ (old('shift_definition_id') ?? $item->shift_definition_id) == $shiftDefinition->id ? 'selected' : '' }}>
-                                {{ $shiftDefinition->title . ' - ' . $shiftDefinition->start_time . ' - ' . $shiftDefinition->end_time }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                <input type="text" class="form-control js-personel-required" name="title" value="{{ old('title') ?? ($item->title ?? '') }}">
                 <div class="wizard-form-error"></div>
-                <x-form-error field="shift_definition_id" />
+                <x-form-error field="title" />
             </div>
         </div>
 

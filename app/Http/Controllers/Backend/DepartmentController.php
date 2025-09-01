@@ -29,11 +29,19 @@ class DepartmentController extends BaseController
         );
         $this->middleware(function ($request, $next) {
             $user = Auth::user();
-            $roleData = $this->getRoleDataFromRequest($request);
-            extract($roleData);
+            $isAdmin = $user->role_id == 2;
+            $isSuperAdmin = $user->role_id == 1;
+            $isCompanyOwner = $user->role_id == 3;
+            $isCompanyAdmin = $user->role_id == 4;
+            $isBranchAdmin = $user->role_id == 5;
+            $isDepartmentAdmin = $user->role_id == 6;
+
+            $companyId = $user->company_id;
+            $branchId = $user->branch_id;
+            $departmentId = $user->department_id;
 
             // Yetki seviyesine göre kullanıcı filtreleme
-            $usersQuery = User::whereIn('role_id', [5, 6]);
+            $usersQuery = User::whereIn('role_id', [6, 5]);
 
             if (!$isSuperAdmin && !$isAdmin) {
                 // Normal kullanıcılar için company_id filtresi
@@ -87,8 +95,17 @@ class DepartmentController extends BaseController
     public function list(Request $request)
     {
         // Departmanlar için listQuery tanımlayalım
-        $roleData = $this->getRoleDataFromRequest($request);
-        extract($roleData);
+        $user = Auth::user();
+        $isAdmin = $user->role_id == 2;
+        $isSuperAdmin = $user->role_id == 1;
+        $isCompanyOwner = $user->role_id == 3;
+        $isCompanyAdmin = $user->role_id == 4;
+        $isBranchAdmin = $user->role_id == 5;
+        $isDepartmentAdmin = $user->role_id == 6;
+
+        $companyId = $user->company_id;
+        $branchId = $user->branch_id;
+        $departmentId = $user->department_id;
         $loggedInUserId = Auth::id();
 
         $this->listQuery = $this->model::query()->with(['branch', 'company', 'user']);

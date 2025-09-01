@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class RoleController extends BaseController
 {
@@ -35,9 +36,11 @@ class RoleController extends BaseController
     {
         if ($request->has('datatable')) {
             // Yetki kontrolü
-            $roleData = $this->getRoleDataFromRequest($request);
-            extract($roleData);
-            $loggedInRoleId = $request->attributes->get('role_id', 0);
+            $user = Auth::user();
+            $isSuperAdmin = $user->role_id == 1;
+            $isAdmin = $user->role_id == 2;
+            $isCompanyOwner = $user->role_id == 3;
+            $loggedInRoleId = $user->role_id;
 
             // Role tablosu için şirket bazlı filtreleme yapmıyoruz
             $select = Role::select();
@@ -103,10 +106,11 @@ class RoleController extends BaseController
 
     public function form(Request $request, $unique = NULL)
     {
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $loggedInRoleId = $request->attributes->get('role_id', 0);
+        $user = Auth::user();
+        $isSuperAdmin = $user->role_id == 1;
+        $isAdmin = $user->role_id == 2;
+        $isCompanyOwner = $user->role_id == 3;
+        $loggedInRoleId = $user->role_id;
 
         if (!is_null($unique)) {
             // Mevcut kayıt

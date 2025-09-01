@@ -9,6 +9,7 @@ use App\Http\Responses\ApiResponse;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends BaseController
 {
@@ -22,7 +23,17 @@ class UserController extends BaseController
     public function profile()
     {
         $user = Auth::user();
-        $userResource = new ProfileResource($user);
+
+        $currentToken = JWTAuth::getToken()->get();
+        $tokenData = [
+            'access_token' => $currentToken,
+            'refresh_token' => $currentToken,
+            'token_type' => 'bearer',
+            'expires_in' => config('jwt.ttl') * 60,
+            'refresh_expires_in' => config('jwt.refresh_ttl') * 60
+        ];
+
+        $userResource = new ProfileResource($user, $tokenData);
         return ApiResponse::success(
             [$userResource],
             "Kullanıcı bilgileriniz başarıyla listelendi."
@@ -33,7 +44,17 @@ class UserController extends BaseController
     {
         $user = User::find(Auth::user()->id);
         $user->update($request->all());
-        $userResource = new ProfileResource($user);
+
+        $currentToken = JWTAuth::getToken()->get();
+        $tokenData = [
+            'access_token' => $currentToken,
+            'refresh_token' => $currentToken,
+            'token_type' => 'bearer',
+            'expires_in' => config('jwt.ttl') * 60,
+            'refresh_expires_in' => config('jwt.refresh_ttl') * 60
+        ];
+
+        $userResource = new ProfileResource($user, $tokenData);
         return ApiResponse::success(
             [$userResource],
             "Kullanıcı bilgileriniz başarıyla güncellendi."

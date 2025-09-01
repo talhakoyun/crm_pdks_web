@@ -16,6 +16,9 @@ return new class extends Migration
             $table->integer('user_id');
             $table->integer('shift_definition_id');
             $table->tinyInteger('is_active')->default(1);
+            $table->integer('created_by')->nullable();
+            $table->integer('updated_by')->nullable();
+            $table->integer('deleted_by')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

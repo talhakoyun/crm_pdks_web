@@ -138,18 +138,21 @@ class BaseController extends Controller
 
     public function form(Request $request, $unique = NULL)
     {
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-        $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
+        $user = Auth::user();
+        $isSuperAdmin = $user->role_id == 1;
+        $isAdmin = $user->role_id == 2;
+        $isCompanyOwner = $user->role_id == 3;
+        $isCompanyAdmin = $user->role_id == 4;
+        $isBranchAdmin = $user->role_id == 5;
+        $isDepartmentAdmin = $user->role_id == 6;
 
-        $companyId = $request->attributes->get('company_id');
-        $branchId = $request->attributes->get('branch_id');
-        $departmentId = $request->attributes->get('department_id');
-        $userId = $request->attributes->get('user_id');
-        $loggedInRoleId = $request->attributes->get('role_id', 0);
+
+
+        $companyId = $user->company_id;
+        $branchId = $user->branch_id;
+        $departmentId = $user->department_id;
+        $userId = $user->id;
+        $loggedInRoleId = $user->role_id;
 
         if (!is_null($unique)) {
             // Mevcut kayıt
@@ -292,18 +295,19 @@ class BaseController extends Controller
 
     public function save(Request $request, $unique = NULL)
     {
-        $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-        $isAdmin = $request->attributes->get('is_admin', false);
-        $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-        $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-        $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-        $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
+        $user = Auth::user();
+        $isSuperAdmin = $user->role_id == 1;
+        $isAdmin = $user->role_id == 2;
+        $isCompanyOwner = $user->role_id == 3;
+        $isCompanyAdmin = $user->role_id == 4;
+        $isBranchAdmin = $user->role_id == 5;
+        $isDepartmentAdmin = $user->role_id == 6;
 
-        $companyId = $request->attributes->get('company_id');
-        $branchId = $request->attributes->get('branch_id');
-        $departmentId = $request->attributes->get('department_id');
-        $userId = $request->attributes->get('user_id');
-        $loggedInRoleId = $request->attributes->get('role_id', 0);
+        $companyId = $user->company_id;
+        $branchId = $user->branch_id;
+        $departmentId = $user->department_id;
+        $userId = $user->id;
+        $loggedInRoleId = $user->role_id;
 
         // Eğer düzenleme yapılıyorsa ve süper admin/admin değilse, erişim kontrolü yap
         if (!is_null($unique) && !$isSuperAdmin && !$isAdmin) {
@@ -569,18 +573,19 @@ class BaseController extends Controller
     {
         $exits = $this->model::find((int)$request->post('id'));
         if (!is_null($exits)) {
-            $isSuperAdmin = $request->attributes->get('is_super_admin', false);
-            $isAdmin = $request->attributes->get('is_admin', false);
-            $isCompanyOwner = $request->attributes->get('is_company_owner', false);
-            $isCompanyAdmin = $request->attributes->get('is_company_admin', false);
-            $isBranchAdmin = $request->attributes->get('is_branch_admin', false);
-            $isDepartmentAdmin = $request->attributes->get('is_department_admin', false);
+            $user = Auth::user();
+            $isSuperAdmin = $user->role_id == 1;
+            $isAdmin = $user->role_id == 2;
+            $isCompanyOwner = $user->role_id == 3;
+            $isCompanyAdmin = $user->role_id == 4;
+            $isBranchAdmin = $user->role_id == 5;
+            $isDepartmentAdmin = $user->role_id == 6;
 
-            $companyId = $request->attributes->get('company_id');
-            $branchId = $request->attributes->get('branch_id');
-            $departmentId = $request->attributes->get('department_id');
-            $userId = $request->attributes->get('user_id');
-            $loggedInRoleId = $request->attributes->get('role_id', 0);
+            $companyId = $user->company_id;
+            $branchId = $user->branch_id;
+            $departmentId = $user->department_id;
+            $userId = $user->id;
+            $loggedInRoleId = $user->role_id;
 
             // Şirket, şube ve kullanıcı bazlı erişim kontrolü
             if (!$isSuperAdmin && !$isAdmin) {
